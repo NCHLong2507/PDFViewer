@@ -5,10 +5,17 @@ import LoginContainer from "../components/LoginContainer";
 import SignupContainer from "../components/SignupContainer";
 import VerifyEmail from "../pages/Authentication/VerifyEmail";
 import SuccessVerifyEmail from "../pages/Authentication/SuccessVerifyPage";
+import DocumentList from "../pages/Document/DocumentList";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App/>
+    element: <App/>,
+    children: [
+      {
+        path:"/document",
+        element: <DocumentList/>
+      }
+    ]
   },
   {
     path:"/auth",
