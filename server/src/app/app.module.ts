@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserModule } from './user/user.module';
+import { UserModule } from '../user/user.module';
 import { ConfigModule} from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { MailModule } from './mail/mail.module';
+import { AuthModule } from '../auth/auth.module';
+import { MailModule } from '../mail/mail.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 @Module({
@@ -16,7 +16,7 @@ import { join } from 'path';
     MongooseModule.forRoot(process.env.DATABASE as string), 
     UserModule, 
     AuthModule, 
-    MailModule
+    MailModule, AppModule
   ],
   controllers: [],
   providers: []

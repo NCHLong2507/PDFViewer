@@ -1,12 +1,12 @@
-import { Model } from 'mongoose';
-import { Injectable, HttpStatus, BadRequestException, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { plainToClass } from 'class-transformer';
 import { LoginDTO } from 'src/auth/DTO/LoginDTO';
 import { RegisterDTO } from 'src/auth/DTO/RegisterDTO';
 import { UserDTO } from 'src/user/DTO/UserDTO';
-import { ResponseDTO } from 'src/ResponseDTO';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
+import * as brypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -37,27 +37,7 @@ export class AuthService {
     return access_token;
   }
 
-  async login(
-    user: LoginDTO,
-  ): Promise<UserDTO> {
-    const { email, password } = user;
-    if (!email || !password) {
-      throw new BadRequestException('Email and Password is required');
-    }
-    const foundUser = await this.userService.findbyEmail(email);
-    if (foundUser === null) {
-      throw new NotFoundException('User not found');
-    }
-    const isPasswordValid = await this.comparePassword(
-      password,
-      foundUser.password,
-    );
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
-    }
-    foundUser.token = await this.signToken(foundUser); 
-    return foundUser;
-  }
+
 
   async signup(user: RegisterDTO): Promise<string> {
     const { name, email, password } = user;
@@ -89,12 +69,27 @@ export class AuthService {
         throw new ConflictException('User already exists');
       }
       const newUser = await this.userService.createUser(name, email, password,true);
-      newUser.token = await this.signToken(newUser);
-      return newUser;
+      const userDTO = plainToClass(UserDTO, newUser.toObject());
+      userDTO.token = await this.signToken(userDTO);
+      return userDTO;
     } catch (err) {
       console.log(err)
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
-  
+
+  async validateUser(body: LoginDTO): Promise<UserDTO> {
+    const { email, password } = body;
+    const foundUser = await this.userService.findbyEmail(email);
+    if (foundUser) {
+      const isPasswordValid = await this.comparePassword(password,foundUser.password,);
+      if (isPasswordValid) {
+        const userDTO = plainToClass(UserDTO,foundUser.toObject());
+        return userDTO;
+      } else {
+        throw new UnauthorizedException('Invalid password');
+      }
+    }
+    throw new NotFoundException('User not found!');
+  }
 }

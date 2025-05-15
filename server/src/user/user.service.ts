@@ -5,7 +5,7 @@ import {Model} from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
-
+import { UserDocument } from '../user/user.schema';
 @Injectable()
 export class UserService {
   constructor (
@@ -13,7 +13,7 @@ export class UserService {
     private userModel: Model<User>
   ) {}
 
-  async findbyEmail(email: string, throwIfNotFound = true): Promise<UserDTO | null> {
+  async findbyEmail(email: string, throwIfNotFound = true): Promise<UserDocument | null> {
   if (!email) {
     throw new BadRequestException('Email is required');
   }
@@ -27,11 +27,11 @@ export class UserService {
       return null; 
     }
   }
-  const userDTO = plainToClass(UserDTO, user.toObject());
-  return userDTO;
+  
+  return user;
 }
 
-  async createUser(name: string, email: string, password: string, ishashedPassword = false): Promise<UserDTO> {
+  async createUser(name: string, email: string, password: string, ishashedPassword = false): Promise<UserDocument> {
     if (!name || !email || !password) {
       throw new BadRequestException('Name, email and password are required');
     }
@@ -43,7 +43,6 @@ export class UserService {
       password = await bcrypt.hash(password,12);
     }
     const newUser = await this.userModel.create({ name, email, password });
-    const userDTO = plainToClass(UserDTO, newUser.toObject());
-    return userDTO;
+    return newUser;
   }
 }

@@ -20,13 +20,14 @@ export class AllExceptionsFilter  implements ExceptionFilter {
           : (responseBody as any).message || 'Unexpected error';
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+      message = ' ';
     }
 
     response
       .status(status)
       .json({
         statusCode: status,
+        message: message,
         timestamp: new Date().toISOString(),
         path: request.url,
       });
