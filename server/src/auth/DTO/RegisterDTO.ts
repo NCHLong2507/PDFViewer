@@ -10,4 +10,5 @@ export class RegisterDTO {
 
   @IsString()
   name: string;
+  
 }

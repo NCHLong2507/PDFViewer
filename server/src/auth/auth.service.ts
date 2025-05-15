@@ -7,6 +7,7 @@ import { UserDTO } from 'src/user/DTO/UserDTO';
 import { ResponseDTO } from 'src/ResponseDTO';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -94,5 +95,6 @@ export class AuthService {
       console.log(err)
       throw new UnauthorizedException('Invalid or expired token');
     }
-}
+  }
+  
 }
