@@ -57,25 +57,20 @@ export class AuthService {
   } 
 
   async registerUser(token: string): Promise<UserDTO> {
-    try {
-      const payload = await this.jwtService.verifyAsync(token,{
-        secret: process.env.JWT_VERIFY_KEY
-      });
+    const payload = await this.jwtService.verifyAsync(token,{
+      secret: process.env.JWT_VERIFY_KEY
+    });
 
-      const { name, email, password } = payload;
-
-      const existingUser = await this.userService.findbyEmail(email, false);
-      if (existingUser) {
-        throw new ConflictException('User already exists');
-      }
-      const newUser = await this.userService.createUser(name, email, password,true);
-      const userDTO = plainToClass(UserDTO, newUser.toObject());
-      userDTO.token = await this.signToken(userDTO);
-      return userDTO;
-    } catch (err) {
-      console.log(err)
-      throw new UnauthorizedException('Invalid or expired token');
+    const { name, email, password } = payload;
+    
+    const existingUser = await this.userService.findbyEmail(email, false);
+    if (existingUser) {
+      throw new ConflictException('User already exists');
     }
+    const newUser = await this.userService.createUser(name, email, password,true);
+    const userDTO = plainToClass(UserDTO, newUser.toObject());
+    userDTO.token = await this.signToken(userDTO);
+    return userDTO;
   }
 
   async validateUser(body: LoginDTO): Promise<UserDTO> {
