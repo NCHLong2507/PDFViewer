@@ -1,8 +1,14 @@
 import EmptyDocument from '../assets/EmptyDocument.png';
 import UploadButton from './Uploadbutton';
 import { IoMdArrowDropdown, IoMdArrowDropup  } from "react-icons/io";
+import { RiAlertLine } from "react-icons/ri";
+import { IoClose } from "react-icons/io5";
+import { FiCheckCircle } from "react-icons/fi";
+import { useState } from 'react';
 
 export default function DocumentContainer() {
+  const [showAlert, setShowAlert] = useState(false);
+  const [showSuccess,setShowSuccess] = useState(false);
   const isEmpty = false;
   const documents = [
     {
@@ -19,8 +25,10 @@ export default function DocumentContainer() {
     },
     // Thêm các dòng khác tương tự
   ];
+
+   
+
   return (
-    
     <section className="w-full h-[638px] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)]">
       {isEmpty ? (
         <div className="w-[232px] h-[308px] gap-[24px] flex flex-col items-center justify-center">
@@ -32,23 +40,37 @@ export default function DocumentContainer() {
         </div>
       ) : (
         <div className="overflow-x-auto w-full min-h-full bg-white rounded border border-gray-300">
-          <div className="max-w-md mx-auto absolute top-[20px] bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
-            <strong className="font-bold flex items-center gap-2">
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a1.5 1.5 0 001.28 2.25h16a1.5 1.5 0 001.28-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-              Cannot Upload This File
-            </strong>
-            <span className="block sm:inline mt-1">Please ensure the upload file does not require password</span>
-            <button className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label="Close alert">
-              <svg className="fill-current h-6 w-6 text-red-700" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <title>Close</title>
-                <path d="M14.348 5.652a.75.75 0 00-1.06 0L10 8.94 6.712 5.652a.75.75 0 10-1.06 1.06L8.94 10l-3.288 3.288a.75.75 0 101.06 1.06L10 11.06l3.288 3.288a.75.75 0 101.06-1.06L11.06 10l3.288-3.288a.75.75 0 000-1.06z" />
-              </svg>
-            </button>
-          </div>
+          {
+            showAlert && (
+              <div className="absolute flex top-[670px] left-[1092px] w-[392px] bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-[8px] items-start gap-3" role="alert">
+                <div className="pt-1">
+                  <RiAlertLine className='w-5 h-5 text-red-600'/>
+                </div>
+
+                <div className="flex-1">
+                  <strong className="font-bold block">Cannot Upload This File</strong>
+                  <span className="block mt-1">Please ensure the upload file does not require password</span>
+                </div>
+
+                <button onClick={()=> setShowAlert(false)} className="absolute top-0 right-0 px-4 py-3" aria-label="Close alert">
+                  <IoClose className='h-[24px] w-[24px] text-red-700'/>
+                </button>
+              </div>
+            )
+          }
+          {
+            showSuccess && (
+              <div className="flex absolute top-[695px] left-[1092px] items-center justify-between w-[392px] bg-green-50 border-[1px] border-green-400 text-green-700 px-4 py-3 rounded-[8px] shadow-md">
+                <div className="flex items-center gap-2">
+                  <FiCheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Uploaded successfully</span>
+                </div>
+                <button onClick={()=> setShowSuccess(false)} className="top-0 right-0">
+                  <IoClose className="w-4 h-4" />
+                </button>
+              </div>
+            )
+          }
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-200">
               <tr>
