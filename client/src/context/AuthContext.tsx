@@ -6,7 +6,7 @@ interface AuthContextType {
   setUserInfor: React.Dispatch<React.SetStateAction<any | null>>;
   login: (email: string, password: string) => Promise<{ success: boolean; user?: any; message?: string, statusCode?: number }>;
   logout: () => Promise<{ success: boolean; error?: string } | void>;
-  signup: (data?: { name: string; email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
+  signup: (data?: { name: string; email: string; password: string }) => Promise<{ success: boolean; user?: any; message?: string, statusCode?: number }>;
   isAuthenticated: boolean;
 }
 interface User {
@@ -104,7 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const error = err as any;
       return {
         success: false,
-        error: error.response?.data?.message || "Signup failed"
+        message: error.response?.data?.message || 'Signup failed',
+        statusCode: error.response?.data?.statusCode || 500
       };
     }
   }

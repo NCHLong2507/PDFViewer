@@ -6,6 +6,7 @@ import SignupContainer from "../components/SignupContainer";
 import VerifyEmail from "../pages/Authentication/VerifyEmail";
 import SuccessVerifyEmail from "../pages/Authentication/SuccessVerifyPage";
 import DocumentList from "../pages/Document/DocumentList";
+import PageNotFound from "../pages/PageNotFound";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/successverifyemail",
     element: <SuccessVerifyEmail/>
+  }, 
+  {
+    path: "*",
+    element: <PageNotFound />,
   }
 ]);
 
