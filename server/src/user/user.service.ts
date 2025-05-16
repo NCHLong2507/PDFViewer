@@ -3,7 +3,6 @@ import { UserDTO } from './DTO/UserDTO';
 import { User } from '../user/user.schema';
 import {Model} from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { plainToClass } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { UserDocument } from '../user/user.schema';
 @Injectable()
@@ -27,7 +26,6 @@ export class UserService {
       return null; 
     }
   }
-  
   return user;
 }
 

@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { LoginDTO } from 'src/auth/DTO/LoginDTO';
 import { RegisterDTO } from 'src/auth/DTO/RegisterDTO';
 import { UserDTO } from 'src/user/DTO/UserDTO';
@@ -43,23 +43,32 @@ export class AuthService {
     const { name, email, password } = user;
 
     const existingUser = await this.userService.findbyEmail(email, false);
-    if (existingUser instanceof UserDTO) {
+    if (existingUser !== null) {
       throw new ConflictException('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 12); 
 
     const token = await this.jwtService.signAsync({name,email,password: hashedPassword},{
-      expiresIn: '1h',
+      expiresIn: '30m',
       secret: process.env.JWT_VERIFY_KEY
     });
     return token;
   } 
 
   async registerUser(token: string): Promise<UserDTO> {
-    const payload = await this.jwtService.verifyAsync(token,{
-      secret: process.env.JWT_VERIFY_KEY
+    let payload: {
+      name: string,
+      email: string,
+      password: string
+    };
+    try {
+      payload = await this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_VERIFY_KEY,
     });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
 
     const { name, email, password } = payload;
     
@@ -68,7 +77,7 @@ export class AuthService {
       throw new ConflictException('User already exists');
     }
     const newUser = await this.userService.createUser(name, email, password,true);
-    const userDTO = plainToClass(UserDTO, newUser.toObject());
+    const userDTO = plainToInstance(UserDTO, newUser.toObject(),{excludeExtraneousValues: true});
     userDTO.token = await this.signToken(userDTO);
     return userDTO;
   }
@@ -79,7 +88,7 @@ export class AuthService {
     if (foundUser) {
       const isPasswordValid = await this.comparePassword(password,foundUser.password,);
       if (isPasswordValid) {
-        const userDTO = plainToClass(UserDTO,foundUser.toObject());
+        const userDTO = plainToInstance(UserDTO,foundUser.toObject(),{excludeExtraneousValues:true});
         return userDTO;
       } else {
         throw new UnauthorizedException('Invalid password');

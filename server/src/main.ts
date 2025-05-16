@@ -1,7 +1,9 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { AllExceptionsFilter } from './exception/exception.filter';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 
 
 async function bootstrap() {
