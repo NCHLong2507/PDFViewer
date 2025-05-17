@@ -86,10 +86,9 @@ export class AuthService {
     const { email, password } = body;
     const foundUser = await this.userService.findbyEmail(email);
     if (foundUser) {
-      const isPasswordValid = await this.comparePassword(password,foundUser.password,);
+      const isPasswordValid = await this.comparePassword(password,foundUser.password);
       if (isPasswordValid) {
         const userDTO = plainToInstance(UserDTO,foundUser.toObject(),{excludeExtraneousValues:true});
-
         return userDTO;
       } else {
         throw new UnauthorizedException('Invalid password');

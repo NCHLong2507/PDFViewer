@@ -42,7 +42,10 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('logout')
   async logout(@NestRequest() req) {
-    return req.logout();
+    req.logout();
+    return {
+      status: 'success'
+    }
   }
   
   @Post('signup')
@@ -93,8 +96,10 @@ export class AuthController {
   } 
 
   @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@NestRequest() req) {
-    return req.user;
+  @Get('authorize')
+  checkAuthStatus(@NestRequest() req) {
+    return {
+      status: 'success',
+    }
   }
 }
