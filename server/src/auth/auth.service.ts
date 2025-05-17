@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { plainToInstance } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { LoginDTO } from 'src/auth/DTO/LoginDTO';
 import { RegisterDTO } from 'src/auth/DTO/RegisterDTO';
 import { UserDTO } from 'src/user/DTO/UserDTO';
@@ -89,6 +89,7 @@ export class AuthService {
       const isPasswordValid = await this.comparePassword(password,foundUser.password,);
       if (isPasswordValid) {
         const userDTO = plainToInstance(UserDTO,foundUser.toObject(),{excludeExtraneousValues:true});
+
         return userDTO;
       } else {
         throw new UnauthorizedException('Invalid password');

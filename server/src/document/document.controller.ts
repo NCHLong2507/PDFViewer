@@ -15,9 +15,10 @@ export class DocumentController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file',{storage}))
   async uploadFile(@NestRequest() req,@UploadedFile( new FileSizeValidationPipe()) file: Express.Multer.File) {
-    await this.documentService.createDocument(file.originalname,file.path,req.user._id);
+    const documentDTO = await this.documentService.createDocument(file.originalname,file.path,req.user._id);
     return {
-      status: "success"
+      status: "success",
+      document: documentDTO
     }
   }
 
