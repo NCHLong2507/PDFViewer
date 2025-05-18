@@ -5,10 +5,15 @@ import { RiAlertLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import { FiCheckCircle } from "react-icons/fi";
 import { useState } from 'react';
-
-export default function DocumentContainer() {
-  const [showAlert, setShowAlert] = useState(false);
-  const [showSuccess,setShowSuccess] = useState(false);
+interface DocumentContainerProps {
+  showAlert: boolean;
+  setShowAlert: React.Dispatch<React.SetStateAction<boolean>>;
+  showSuccess: boolean;
+  setShowSuccess: React.Dispatch<React.SetStateAction<boolean>>;
+  alertMessage: string,
+  setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
+}
+export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage }: DocumentContainerProps) {
   const isEmpty = false;
   const documents = [
     {
@@ -29,17 +34,17 @@ export default function DocumentContainer() {
    
 
   return (
-    <section className="w-full h-[638px] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)]">
+    <section className="w-full h-[648px] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)]">
       {isEmpty ? (
         <div className="w-[232px] h-[308px] gap-[24px] flex flex-col items-center justify-center">
           <img src={EmptyDocument} className='w-[192px] h-[192px]' alt="Empty Document" />
           <p className="w-full h-[22px] leading-[1.4] text-base text-center text-[rgba(75,85,101,1)]">
             There is no document founded
           </p>
-          <UploadButton />
+          <UploadButton setShowSuccess={setShowSuccess} setShowAlert={setShowAlert} setAlertMessage={setAlertMessage}/>
         </div>
       ) : (
-        <div className="overflow-x-auto w-full min-h-full bg-white rounded border border-gray-300">
+        <div className="w-full min-h-full bg-white rounded border border-gray-300">
           {
             showAlert && (
               <div className="absolute flex top-[670px] left-[1092px] w-[392px] bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-[8px] items-start gap-3" role="alert">
@@ -49,7 +54,7 @@ export default function DocumentContainer() {
 
                 <div className="flex-1">
                   <strong className="font-bold block">Cannot Upload This File</strong>
-                  <span className="block mt-1">Please ensure the upload file does not require password</span>
+                  <span className="block mt-1">{alertMessage}</span>
                 </div>
 
                 <button onClick={()=> setShowAlert(false)} className="absolute top-0 right-0 px-4 py-3" aria-label="Close alert">
@@ -71,6 +76,7 @@ export default function DocumentContainer() {
               </div>
             )
           }
+          
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-200">
               <tr>
