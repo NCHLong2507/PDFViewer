@@ -8,6 +8,8 @@ interface AuthContextType {
   logout: () => Promise<{ success: boolean; error?: string } | void>;
   signup: (data?: { name: string; email: string; password: string }) => Promise<{ success: boolean; user?: any; message?: string, statusCode?: number }>;
   isAuthenticated: boolean;
+  checkAuthorization: () => Promise<boolean>;
+
 }
 interface User {
   name: string,
@@ -78,10 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await api.post('/auth/logout');
     } catch (err) {
       const error = err as any;
-      return {
-        success: false,
-        error: error.response?.data?.message || "Logout failed"
-      };
+      console.log(error);
     }
   }
 
@@ -109,6 +108,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
   }
+
+  const checkAuthorization = async (): Promise<boolean> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      const result = await api.get('/auth/authorize'); 
+      if (result && result.data.status === 'success') {
+        return true;
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUserInfor(null);
+      } 
+    } catch (err: any) {
+      console.log(err.response?.message);
+    }
+    return false;
+  }
   return ( 
     <AuthContext.Provider 
       value = {{
@@ -118,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         signup,
         isAuthenticated: !!userInfor && userInfor != null,
+        checkAuthorization
       }}
     >
       {children}

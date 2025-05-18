@@ -21,6 +21,7 @@ export default function SignupContainer() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup } = useAuth();
 
+  
   const login = useGoogleLogin({
   onSuccess: tokenResponse => console.log(tokenResponse),
 });
@@ -94,23 +95,23 @@ export default function SignupContainer() {
   };
   return (
     <div className="w-[536px] h-[100vh] absolute right-0 px-[48px] gap-[44px] flex flex-col justify-center items-start roudend-[8px]  bg-[#F5F5F5]">
-      <div className=" w-[440px] h-[58px] flex justify-center items-center relative  ">
+      <div className=" w-full h-[58px] flex justify-center items-center relative  ">
         <h1 className="w-[176px] h-[100%] tracking-[-0.02em] text-[44px] gap-[4px] items-start flex justify-center text-[#2C2C2C] leading-[1.2] font-bold">Sign Up</h1>
         <img src={Logo} className='w-[32px] h-[32px] absolute  items-start top-0 right-[100px]'></img>
       </div>
-      <div className='w-[440px] gap-[40px] min-h-[649px] flex flex-col justify-center items-center'>
-        <div className="w-[100%] h-[48px] flex justify-center items-center gap-[18px] text-[#2C2C2C] bg-white border-[1px] py-[12px] px-[16px] border-[#D9D9D9] rounded-[8px]">
+      <div className='w-full gap-[40px] min-h-[649px] flex flex-col justify-center items-center'>
+        <div className="w-full h-[48px] flex justify-center items-center gap-[18px] text-[#2C2C2C] bg-white border-[1px] py-[12px] px-[16px] border-[#D9D9D9] rounded-[8px]">
           <FcGoogle className='w-[24px] h-[28px] '/>
           <button className='w-[147px] h-[16x] text-[14px] font-bold' onClick={() => login()}>Continue with google</button>
         </div>
-        <div className='w-[100%] min-h-[483px] flex flex-col gap-[24px] '>
-          <div className='w-[100%] h-[20px] flex justify-center items-center gap-[10px]'>
+        <div className='w-full min-h-[483px] flex flex-col gap-[24px] '>
+          <div className='w-full h-[20px] flex justify-center items-center gap-[10px]'>
             <div className="w-[157px] border-t border-[#D9D9D9]"></div>
             <span className="text-gray-500 text-sm">or</span>
             <div className="w-[157px] border-t border-[#D9D9D9]"></div>
           </div>
-          <form className='w-[100%] min-h-[336px] flex flex-col gap-[16px]'>
-            <div className='w-[100%] flex flex-col gap-[8px] justify-between min-h-[70px]'>
+          <form className='w-full min-h-[336px] flex flex-col gap-[16px]'>
+            <div className='w-full flex flex-col gap-[8px] justify-between min-h-[70px]'>
               <label className='leading-[1.4] h-[22px]'>Full Name<span className='text-[#ff0101] ml-[4px]'>*</span></label>
               <input 
               {...fullnameField.bind}
@@ -121,7 +122,7 @@ export default function SignupContainer() {
                 {fullnameField.error}
               </p>)}
             </div>
-            <div className='w-[100%] flex flex-col gap-[8px] justify-between min-h-[70px]'>
+            <div className='w-full flex flex-col gap-[8px] justify-between min-h-[70px]'>
               <label className='leading-[1.4] h-[22px]'>Email<span className='text-[#ff0101] ml-[4px]'>*</span></label>
               <input 
               {...emailField.bind}
@@ -133,7 +134,7 @@ export default function SignupContainer() {
                 {emailField.error}
               </p>)}
             </div>
-            <div className='w-[100%] flex flex-col  gap-[8px] justify-between min-h-[70px]'>
+            <div className='w-full flex flex-col  gap-[8px] justify-between min-h-[70px]'>
               <label className='leading-[1.4] h-[22px]'>Password<span className='text-[#ff0101] ml-[4px]'>*</span></label>
               <div className="relative">
                 <input
@@ -185,12 +186,13 @@ export default function SignupContainer() {
           <div className='w-[416px] min-h-[17px] flex flex-col items-start gap-2 mt-2'>
             <div className='w-full flex items-center gap-2'> 
                 <input
+                id="agree"
                 type="checkbox"
                 checked={isChecked}
                 onChange={handleCheckboxChange}
                 className="h-[16px] w-[16px] rounded-[4px] gap-[10px] accent-[#2C2C2C]"
                 />
-              <label htmlFor="agree" className="text-[12px] h-[100%] leading-[1.4] text-[#2C2C2C]">
+              <label htmlFor="agree" className="text-[12px] h-[100%] leading-[1.4] text-[#2C2C2C] cursor-pointer">
                 I accept all <span className='font-bold hover:underline'> Terms of Service </span> and <span className='font-bold hover:underline'>Privacy Policy</span>
               </label>
             </div>

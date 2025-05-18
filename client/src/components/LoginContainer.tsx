@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../assets/DSV.logo.png';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -10,20 +10,14 @@ const isValidEmail = (email:string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 export default function LoginContainer() {
-  const { login, setUserInfor, userInfor } = useAuth();
+  const { login, setUserInfor} = useAuth();
   const emailField = useField('');
   const passwordField = useField(''); 
   const [showPassword,setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   const navigate = useNavigate();
-  console.log(userInfor);
-  const isLoggedIn = userInfor != null;
-  useEffect(() => {
-    if (isLoggedIn) {
-      navigate("/", { replace: true });
-    }
-  }, [isLoggedIn]);
+  
 
   const loginGoogle = useGoogleLogin({
     onSuccess: tokenResponse => console.log(tokenResponse),
@@ -47,17 +41,15 @@ export default function LoginContainer() {
         const result = await login(emailField.value, passwordField.value);
         if (result && result.success) {
           setUserInfor(result.user);
-          navigate('/');
+          navigate('/document/documentlist');
         } else {
-          if (result.statusCode == 404) {
-            setLoginError('Incorrect email or password');
-            emailField.setError('');
-            passwordField.setError('');
-          }
+          setLoginError('Incorrect email or password');
+          emailField.setError('');
+          passwordField.setError('');
         }
       } catch (err) {
-        const error = err as any;
-        console.log(error);
+        console.error('Login error:', err);
+        setLoginError('An error occurred. Please try again.');
       }
     }
 };
@@ -69,7 +61,7 @@ export default function LoginContainer() {
         <img src={Logo} className='w-[32px] h-[32px] absolute items-start top-0 right-[74px]' alt="logo" />
       </div>
 
-      <div className="w-[100%] h-[48px] flex justify-center items-center gap-[18px] text-[#2C2C2C] bg-white border-[1px] border-[#D9D9D9] rounded-[8px]">
+      <div className="w-full h-[48px] flex justify-center items-center gap-[18px] text-[#2C2C2C] bg-white border-[1px] border-[#D9D9D9] rounded-[8px]">
         <FcGoogle className='w-[24px] h-[28px]' />
         <button className='w-[147px] h-[16x] text-[14px] font-bold' onClick={() => loginGoogle()}>
           Continue with google
@@ -83,9 +75,12 @@ export default function LoginContainer() {
           <div className="w-[157px] border-t border-[#D9D9D9]"></div>
         </div>
 
-        <form className='w-[100%] min-h-[160px] flex flex-col gap-[16px]' onSubmit={e => e.preventDefault()}>
-          {/* Email */}
-          <div className='w-[100%] flex flex-col gap-[8px] justify-between min-h-[70px]'>
+        <form className='w-full min-h-[160px] flex flex-col gap-[16px]' 
+          onSubmit={e => {
+            e.preventDefault();
+            handleSignIn(); 
+          }}>
+          <div className='w-full flex flex-col gap-[8px] justify-between min-h-[70px]'>
             <label className='leading-[1.4] h-[22px]'>
               Email<span className='text-[#ff0101] ml-[4px]'>*</span>
             </label>
@@ -107,7 +102,6 @@ export default function LoginContainer() {
             )}
           </div>
 
-          {/* Password */}
           <div className='w-[100%] flex flex-col gap-[8px] justify-between min-h-[70px]'>
             <label className='leading-[1.4] h-[22px]'>
               Password<span className='text-[#ff0101] ml-[4px]'>*</span>
