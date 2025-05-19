@@ -35,10 +35,10 @@ return (
 
                 {isMenuOpen && (
                   <div className="absolute top-[44px] right-0 z-50 w-[190px] h-[62px] rounded-lg bg-white border-[1px] border-[rgba(217,217,217,1)] menudropdown">
-                    <div className="w-[180px] h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center">
                       <button
                       onClick={handleLogout}
-                      className="w-[148px] text-left px-4 py-3 text-[rgba(30,30,30,1)] hover:bg-[rgba(245,245,245,1)] transition-colors duration-200"
+                      className="w-[148px] text-left px-4 py-2 text-[rgba(30,30,30,1)] hover:bg-[rgba(245,245,245,1)] transition-colors duration-200"
                       >
                        Log out
                       </button>

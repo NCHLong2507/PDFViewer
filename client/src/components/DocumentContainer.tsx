@@ -4,7 +4,11 @@ import { IoMdArrowDropdown, IoMdArrowDropup  } from "react-icons/io";
 import { RiAlertLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import { FiCheckCircle } from "react-icons/fi";
-import { useState } from 'react';
+import type { Document } from '../interface/document';
+import { useRef, useCallback } from 'react';
+import { format } from "date-fns";
+import { useAuth } from '../context/AuthContext';
+
 interface DocumentContainerProps {
   showAlert: boolean;
   setShowAlert: React.Dispatch<React.SetStateAction<boolean>>;
@@ -12,26 +16,32 @@ interface DocumentContainerProps {
   setShowSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   alertMessage: string,
   setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
+  documentList: Document[],
+  setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>,
+  setId: React.Dispatch<React.SetStateAction<number>>,
+  setCount: React.Dispatch<React.SetStateAction<number>>
 }
-export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage }: DocumentContainerProps) {
+export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage,documentList, setDocumentList, setId, setCount  }: DocumentContainerProps) {
   const isEmpty = false;
-  const documents = [
-    {
-      fileName: "Letter of Acceptance of Payment Plan",
-      ownerName: "Elton Le (You)",
-      lastUpdatedDate: "Dec 22, 2025",
-      lastUpdatedTime: "5:06:07AM"
-    },
-    {
-      fileName: "Notice of Default on Settlement Offer",
-      ownerName: "Savannah Nguyen",
-      lastUpdatedDate: "Nov 14, 2024",
-      lastUpdatedTime: "12:06:07PM"
-    },
-    // Thêm các dòng khác tương tự
-  ];
+  const documents = documentList.map(doc => {
+  const date = new Date(doc.updatedAt);
+  return {
+    ...doc,
+    lastUpdatedDate: format(date, 'MMM dd, yyyy'),       
+    lastUpdatedTime: format(date, 'HH:mm:ss'),           
+  };
+});
+  const containerRef = useRef<HTMLDivElement>(null);
+  const onScroll = useCallback(() => {
+    if (!containerRef.current) return;
 
-   
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      setId(prev => prev + 1);
+    }
+  }, [setId]);
+  const {userInfor} = useAuth();
 
   return (
     <section className="w-full h-[648px] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)]">
@@ -41,10 +51,14 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
           <p className="w-full h-[22px] leading-[1.4] text-base text-center text-[rgba(75,85,101,1)]">
             There is no document founded
           </p>
-          <UploadButton setShowSuccess={setShowSuccess} setShowAlert={setShowAlert} setAlertMessage={setAlertMessage}/>
+          <UploadButton setShowSuccess={setShowSuccess} setShowAlert={setShowAlert} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} setCount={setCount}/>
         </div>
       ) : (
-        <div className="w-full min-h-full bg-white rounded border border-gray-300">
+        <div
+          ref={containerRef} 
+          onScroll={onScroll}
+          className="w-full h-full bg-white rounded border border-gray-300 overflow-y-auto"
+        >
           {
             showAlert && (
               <div className="absolute flex top-[670px] left-[1092px] w-[392px] bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-[8px] items-start gap-3" role="alert">
@@ -108,10 +122,10 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
               {documents.map((doc, idx) => (
                 <tr key={idx} className="hover:bg-gray-100">
                   <td className="px-8 py-4 whitespace-nowrap text-base text-gray-900">
-                    {doc.fileName}
+                    {doc.name}
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap flex h-[77.36px] items-center text-base text-gray-900">
-                    <span>{doc.ownerName}</span>
+                    <span>{userInfor.email === doc.owner.email ? `${doc.owner.name} (You)` : doc.owner.name}</span>
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap text-base  text-left">
                     <div>{doc.lastUpdatedDate}</div>
