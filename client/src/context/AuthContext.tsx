@@ -1,8 +1,10 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import api from '../api/axios';
 
+
+
 interface AuthContextType {
-  userInfor: any | null;
+  userInfor:  any  | null;
   setUserInfor: React.Dispatch<React.SetStateAction<any | null>>;
   login: (email: string, password: string) => Promise<{ success: boolean; user?: any; message?: string, statusCode?: number }>;
   logout: () => Promise<{ success: boolean; error?: string } | void>;

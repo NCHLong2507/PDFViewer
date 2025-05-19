@@ -10,10 +10,7 @@ export default function VerifyEmail() {
   useEffect(() => {
     const fetchDataUser = async () => {
       try {
-        console.log(1);
-        const res = await api.get('/auth/registerUser', {
-          withCredentials: true, 
-        });
+        const res = await api.get('/auth/registerUser');
         const {user} = res.data;
         setUserInfor(user);
         const token = user.token;
