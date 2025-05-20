@@ -17,10 +17,6 @@ export class UserDTO {
   @Exclude()
   password: string;
 
-  @Expose()
-  @IsOptional()
-  token: string;
-
   @Exclude()
   createdAt: string
 

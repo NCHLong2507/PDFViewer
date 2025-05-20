@@ -24,7 +24,7 @@ export class AuthService {
     return isMatch;
   }
 
-  async signToken(user:UserDTO, expiresIn = process.env.JWT_EXPIRED) {
+  async signToken(user:UserDTO, expiresIn = process.env.JWT_EXPIRED, secret = process.env.JWT_SECRET) {
     const payload = {
       _id: user._id,
       name: user.name,
@@ -32,14 +32,14 @@ export class AuthService {
     };
     const access_token = await this.jwtService.signAsync(payload,{
       expiresIn,
-      secret: process.env.JWT_SECRET
+      secret
     });
     return access_token;
   }
 
 
 
-  async signup(user: RegisterDTO): Promise<string> {
+  async signup(user: RegisterDTO): Promise<{access_token: string, refresh_token: string}> {
     const { name, email, password } = user;
 
     const existingUser = await this.userService.findbyEmail(email, false);
@@ -49,11 +49,19 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 12); 
 
-    const token = await this.jwtService.signAsync({name,email,password: hashedPassword},{
+    const access_token = await this.jwtService.signAsync({name,email,password: hashedPassword},{
       expiresIn: '30m',
-      secret: process.env.JWT_VERIFY_KEY
+      secret: process.env.JWT_SECRET
     });
-    return token;
+
+    const refresh_token = await this.jwtService.signAsync({name,email,password: hashedPassword}, {
+      expiresIn: '14d',
+      secret: process.env.JWT_REFRESH_KEY
+    })
+    return {
+      access_token,
+      refresh_token
+    }
   } 
 
   async registerUser(token: string): Promise<UserDTO> {
@@ -67,18 +75,13 @@ export class AuthService {
       secret: process.env.JWT_VERIFY_KEY,
     });
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new BadRequestException('Invalid email request');
     }
 
     const { name, email, password } = payload;
     
-    const existingUser = await this.userService.findbyEmail(email, false);
-    if (existingUser) {
-      throw new ConflictException('User already exists');
-    }
     const newUser = await this.userService.createUser(name, email, password,true);
     const userDTO = plainToInstance(UserDTO, newUser.toObject(),{excludeExtraneousValues: true});
-    userDTO.token = await this.signToken(userDTO);
     return userDTO;
   }
 

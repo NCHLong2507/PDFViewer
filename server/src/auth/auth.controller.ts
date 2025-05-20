@@ -30,19 +30,31 @@ export class AuthController {
   
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@NestRequest() req ) {
-    const token = await this.authService.signToken(req.user);
-    req.user.token = token;
+  async login(@NestRequest() req, @Res({ passthrough: true }) res: Response ) {
+    const access_token = await this.authService.signToken(req.user);
+    const refresh_token = await this.authService.signToken(req.user,'14d', process.env.JWT_REFRESH_KEY);
+    res.cookie('refresh_token',refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 14*24*60*60*1000
+    });
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 30*60*1000
+    });
     return {
       status: 'success',
       user: req.user,
     };
   }
 
-  @UseGuards(LocalAuthGuard)
   @Post('logout')
-  async logout(@NestRequest() req) {
-    req.logout();
+  async logout(@NestRequest() req, @Res({passthrough:true}) res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
     return {
       status: 'success'
     }
@@ -52,30 +64,30 @@ export class AuthController {
   async signup(@Body() body: RegisterDTO | undefined,@NestRequest() req: Request, @Res({ passthrough: true }) res: Response) {
     let name:string, email:string, password: string;
     if (body === undefined) {
-      const token = req.cookies['verifyToken'];
+      const token = req.cookies['refresh_token'];
       if (!token) {
         throw new BadRequestException('Missing token');
       }
-      const payload = this.jwtService.verify(token,{secret:process.env.JWT_VERIFY_KEY}); 
+      const payload = this.jwtService.verify(token,{secret:process.env.JWT_REFRESH_KEY}); 
       ({ name, password, email } = payload);
     }
     else {
       ({name,password,email} = body);
     }
     const data: RegisterDTO = {name,password,email}
-    const verifyToken = await this.authService.signup(data);
+    const {access_token, refresh_token} = await this.authService.signup(data);
     const mailoptions = {
       subject: 'Verification email',
       template: 'signup-confirmation-email',
       email,
-      context: {name, verificationLink:`http://localhost:5173/successverifyemail`}
+      context: {name,verificationLink: `http://localhost:3000/auth/registerUser?access_token=${access_token}`}
     }
     this.mailService.sendEmail(mailoptions);
-    res.cookie('verifyToken',verifyToken, {
+    res.cookie('refresh_token',refresh_token, {
       httpOnly: true,
       secure: false,
       sameSite: 'strict',
-      maxAge: 36600000
+      maxAge: 14*24*60*60*1000
     });
     return {
       status: 'success',
@@ -83,23 +95,26 @@ export class AuthController {
   }
 
   @Get('registerUser') 
-  async registerUserz(@NestRequest() req: Request) {
-    const token = req.cookies['verifyToken'];
-    if (!token) {
+  async registerUserz(@Query('access_token') access_token: string, @NestRequest() req: Request, @Res({ passthrough: true }) res: Response) {
+    if (!access_token) {
       throw new UnauthorizedException('Access denied: No verification token found');
     }
-    const result = await this.authService.registerUser(token);
-    return {
-      status: 'success',
-      user: result
-    }
+    await this.authService.registerUser(access_token);
+    res.cookie('access_token',access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 30*60*1000
+    });
+    res.redirect('http://localhost:5173/successverifyemail');
   } 
 
   @UseGuards(JwtAuthGuard)
   @Get('authorize')
-  checkAuthStatus(@NestRequest() req) {
+  checkAuthStatus(@NestRequest() req: Request) {
     return {
       status: 'success',
+      user: req.user
     }
   }
 }
