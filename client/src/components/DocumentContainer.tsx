@@ -19,9 +19,11 @@ interface DocumentContainerProps {
   documentList: Document[],
   setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>,
   setId: React.Dispatch<React.SetStateAction<number>>,
-  setCount: React.Dispatch<React.SetStateAction<number>>
+  setCount: React.Dispatch<React.SetStateAction<number>>,
+  sortOrder: boolean,
+  setSortOrder: React.Dispatch<React.SetStateAction<boolean>>,
 }
-export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage,documentList, setDocumentList, setId, setCount  }: DocumentContainerProps) {
+export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage,documentList, setDocumentList, setId, setCount, sortOrder, setSortOrder  }: DocumentContainerProps) {
   const isEmpty = false;
   const documents = documentList.map(doc => {
   const date = new Date(doc.updatedAt);
@@ -32,17 +34,27 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
   };
 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const onScroll = useCallback(() => {
-    if (!containerRef.current) return;
+  const prevscrollHeight = useRef(0);
 
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-
-    if (scrollHeight - scrollTop - clientHeight < 100) {
-      setId(prev => prev + 1);
+  const onScroll = useCallback(()=> {
+    const container = containerRef.current;
+    if (!container) return;
+    const {scrollTop, scrollHeight, clientHeight} = container;
+    if (prevscrollHeight.current < scrollHeight && scrollHeight - scrollTop - clientHeight < 100) {
+      prevscrollHeight.current = scrollHeight;
+      setId((prev) => prev+1);
     }
-  }, [setId]);
+  },[setId]);
+  const handleAscSort = () => {
+    if (sortOrder === true) return;
+    setSortOrder(true);
+  }
+  const handleDescSort = () => { 
+    if (sortOrder === false) return;
+    setSortOrder(false);
+  }
   const {userInfor} = useAuth();
-
+  
   return (
     <section className="w-full h-[648px] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)]">
       {isEmpty ? (
@@ -51,7 +63,7 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
           <p className="w-full h-[22px] leading-[1.4] text-base text-center text-[rgba(75,85,101,1)]">
             There is no document founded
           </p>
-          <UploadButton setShowSuccess={setShowSuccess} setShowAlert={setShowAlert} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} setCount={setCount}/>
+          <UploadButton setShowSuccess={setShowSuccess} setShowAlert={setShowAlert} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} setCount={setCount} sortOrder={sortOrder}/>
         </div>
       ) : (
         <div
@@ -112,8 +124,8 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
                 >
                   Last updated
                   <div className='flex flex-col justify-center items-center'>
-                    <IoMdArrowDropup className='absolute right-[80px] top-[8px] w-[24px] h-[24px]'/>
-                    <IoMdArrowDropdown className='absolute right-[80px] bottom-[10px] w-[24px] h-[24px]'/>
+                    <IoMdArrowDropup onClick={handleAscSort} className='absolute right-[80px] top-[4px] w-[24px] h-[24px] hover:scale-120'/>
+                    <IoMdArrowDropdown onClick={handleDescSort} className='absolute right-[80px] bottom-[10px] w-[24px] h-[24px] hover:scale-120 '/>
                   </div>
                 </th>
               </tr>

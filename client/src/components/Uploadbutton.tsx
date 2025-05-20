@@ -13,6 +13,7 @@ interface UploadButtonProps {
   setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
   setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>;
   setCount: React.Dispatch<React.SetStateAction<number>>;
+  sortOrder: boolean
 }
 
 async function isPdfPasswordProtected(file: File): Promise<boolean> {
@@ -33,7 +34,7 @@ async function isPdfPasswordProtected(file: File): Promise<boolean> {
   }
 }
 
-export default function UploadButton({setShowSuccess, setShowAlert, setAlertMessage,setDocumentList, setCount}: UploadButtonProps) {
+export default function UploadButton({setShowSuccess, setShowAlert, setAlertMessage,setDocumentList, setCount, sortOrder}: UploadButtonProps) {
   const [isUploadModal, setIsUploadModal] = useState(false);
   const [uploadProgress,setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,7 +83,9 @@ export default function UploadButton({setShowSuccess, setShowAlert, setAlertMess
       setTimeout(() => {
         setIsUploadModal(false); 
         setShowSuccess(true); 
-        setDocumentList((prev)=> [result.data.document,...prev]);
+        if (sortOrder === false) {
+          setDocumentList((prev)=> [result.data.document,...prev]);
+        } 
         setCount((prev) => prev+1);
         setTimeout(() => {
           setShowSuccess(false);

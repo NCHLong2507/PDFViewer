@@ -6,9 +6,10 @@ interface DocumentHeaderProps {
   setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
   setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>,
   setCount:  React.Dispatch<React.SetStateAction<number>>,
+  sortOrder: boolean,
   count: number
 }
-export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertMessage, setDocumentList, count,setCount }: DocumentHeaderProps) {
+export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertMessage, setDocumentList, count,setCount, sortOrder }: DocumentHeaderProps) {
   return (
     <div className="h-[52px] w-full flex justify-between items-center py-[8px]">
       <div className="w-[322px] h-[38px] flex gap-[12px]">
@@ -18,7 +19,7 @@ export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertM
           <p className="w-[68px] h-[26px] leading-[1.4] text-[14px] text-[rgba(117,117,117,1)] flex justify-start items-center text-center">{`Total ${count}`}</p>
         </div>
       </div>
-      <UploadButton setShowAlert={setShowAlert} setShowSuccess={setShowSuccess} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} setCount={setCount}/>
+      <UploadButton setShowAlert={setShowAlert} setShowSuccess={setShowSuccess} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} setCount={setCount} sortOrder={sortOrder}/>
     </div>
   )
 }
