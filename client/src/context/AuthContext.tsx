@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext } from "react";
 import api from '../api/axios';
 
 
@@ -24,26 +24,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userInfor,setUserInfor] = useState<User|null>(null);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        const userData = localStorage.getItem('user')
-
-        if (token && userData) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          const parsedUser = JSON.parse(userData);
-          setUserInfor(parsedUser);
-        } 
-      } catch(err) {
-        console.error("Error while loading...",err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    }
-    checkAuth();
-},[]);
-
   const login = async (email:string,password:string) => {
     try {
       const res = await api.post('/auth/login',{
@@ -51,13 +31,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       const {user} = res.data;
-      if (!user || !user.token) {
+      if (!user) {
         console.error('Missing token or user_data in response:', res.data);
         throw new Error('Invalid response data');
       }
-      const token = user.token;
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      localStorage.setItem('token',token);
       localStorage.setItem('user',JSON.stringify(user));
       return {
         success: true,
@@ -74,10 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   }
   const logout = async () => {
-    delete api.defaults.headers.common['Authorization'];
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUserInfor(null);
+    localStorage.removeItem('user');
     try {
       await api.post('/auth/logout');
     } catch (err) {
@@ -113,19 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuthorization = async (): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return false;
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       const result = await api.get('/auth/authorize'); 
       if (result && result.data.status === 'success') {
+        setUserInfor(result.data.user);
         return true;
       } else {
-        localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUserInfor(null);
       } 
     } catch (err: any) {
-      console.log(err.response?.message);
+      console.log(err.response);
     }
     return false;
   }

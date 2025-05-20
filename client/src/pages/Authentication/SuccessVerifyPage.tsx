@@ -1,31 +1,8 @@
 import Logo from '../../assets/DSV.logo.png';
 import SuccessVerify from "../../assets/verify-success.png";
-import { useEffect } from "react";
-import api from '../../api/axios';
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 export default function VerifyEmail() {
-  const {setUserInfor} = useAuth();
   const navigate = useNavigate();
-  useEffect(() => {
-    const fetchDataUser = async () => {
-      try {
-        const res = await api.get('/auth/registerUser');
-        const {user} = res.data;
-        setUserInfor(user);
-        const token = user.token;
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        localStorage.setItem('token',token);
-        localStorage.setItem('user',JSON.stringify(user));
-      } catch (err) {
-        const error = err as any;
-        console.log(error);
-      }
-    };
-
-    fetchDataUser();
-  },[]);
-
   return(
     <div>
       <div className="w-[100vw] h-[64px] flex gap-[4px] shadow-md-custom bg-white border-[0.5px]  border-[#E3E8EF]" >
