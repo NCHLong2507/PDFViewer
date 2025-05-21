@@ -46,9 +46,9 @@ export default function DocumentList() {
     LazyLoadDocuments();
   },[id,sortOrder])
 
-  const props = { showAlert, setShowAlert, showSuccess, setShowSuccess, alertMessage, setAlertMessage, documentList, setDocumentList, setId, setCount, sortOrder, setSortOrder };
+  const props = { showAlert, setShowAlert, showSuccess, setShowSuccess, alertMessage, setAlertMessage, documentList, setDocumentList, setId, count, setCount, sortOrder, setSortOrder };
   const { showAlert: _, showSuccess: __, alertMessage: ___,setId: ____, setSortOrder: _____, ...restProps  } = props;
-  const headerProps = { ...restProps, count };
+  const headerProps = { ...restProps };
 
   return (
     <div className="flex-col flex gap-[16px] px-[24px] pt-[24px] pb-[16px]">

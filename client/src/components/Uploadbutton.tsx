@@ -92,6 +92,7 @@ export default function UploadButton({setShowSuccess, setShowAlert, setAlertMess
         }, 3000);
       }, 1000);
     } catch (err:any) {
+      console.log(err);
       setIsUploadModal(false);
       const errorMsg = err.response?.data?.message || 'Upload failed';
       setAlertMessage(errorMsg);

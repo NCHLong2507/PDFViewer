@@ -1,28 +1,23 @@
 import { createContext, useState, useContext } from "react";
 import api from '../api/axios';
-
-
+import type {User} from '../interface/user';
 
 interface AuthContextType {
-  userInfor:  any  | null;
-  setUserInfor: React.Dispatch<React.SetStateAction<any | null>>;
-  login: (email: string, password: string) => Promise<{ success: boolean; user?: any; message?: string, statusCode?: number }>;
-  logout: () => Promise<{ success: boolean; error?: string } | void>;
-  signup: (data?: { name: string; email: string; password: string }) => Promise<{ success: boolean; user?: any; message?: string, statusCode?: number }>;
+  userInfor:  User  | undefined;
+  setUserInfor: React.Dispatch<React.SetStateAction<User | undefined>>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: User; message?: string, statusCode?: number }>;
+  logout: () => Promise<{ success: boolean; user?:User; error?: string } | void>;
+  signup: (data: { name: string; email: string; password: string }) => Promise<{ success: boolean; user_id?: string; message?: string, statusCode?: number }>;
   isAuthenticated: boolean;
   checkAuthorization: () => Promise<boolean>;
 
 }
-interface User {
-  name: string,
-  email: string,
-  _id: string
-}
+
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userInfor,setUserInfor] = useState<User|null>(null);
+  const [userInfor,setUserInfor] = useState<User|undefined>(undefined);
 
   const login = async (email:string,password:string) => {
     try {
@@ -35,7 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Missing token or user_data in response:', res.data);
         throw new Error('Invalid response data');
       }
-      localStorage.setItem('user',JSON.stringify(user));
       return {
         success: true,
         user:user
@@ -51,8 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   }
   const logout = async () => {
-    setUserInfor(null);
-    localStorage.removeItem('user');
+    setUserInfor(undefined);
     try {
       await api.post('/auth/logout');
     } catch (err) {
@@ -61,19 +54,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const signup = async (data?: {name:string,email:string,password:string}) => {
+  const signup = async (data: {name:string,email:string,password:string}) => {
     try {
-      if (!data) {
-        await api.post('/auth/signup',undefined,{withCredentials:true}); 
-      } else {
-        const { name, email, password } = data;
-        await api.post('/auth/signup', {
-          name,
-          email,
-          password,
-        });
-      }
+      const { name, email, password } = data;
+      const result = await api.post('/auth/signup', {
+        name,
+        email,
+        password,
+      });
+      localStorage.setItem('email',email);
       return {
+        user_id:result.data.id as string,
         success: true,
       };
     } catch(err) {
@@ -93,11 +84,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserInfor(result.data.user);
         return true;
       } else {
-        localStorage.removeItem('user');
-        setUserInfor(null);
+        setUserInfor(undefined);
       } 
     } catch (err: any) {
-      console.log(err.response);
+      const originalRequest = err.config;
+      if (err.response?.status === 401) {
+        try {
+          await api.get('/auth/refresh'); 
+          const retry = await api(originalRequest); 
+          console.log(retry)
+          if (retry && retry.data.status === 'success') {
+            setUserInfor(retry.data.user);
+            console.log("A",userInfor)
+            return true;
+          }
+        } catch {
+          await logout();
+          return false;
+        }
+      }
     }
     return false;
   }

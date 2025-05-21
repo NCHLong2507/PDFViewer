@@ -81,7 +81,8 @@ export default function SignupContainer() {
       try {
         const result = await signup({name:fullnameField.value,email:emailField.value,password:passwordField.value});
         if (result && result.success) {
-          navigate(`/verifyemail?email=${emailField.value}`)
+          const {user_id} = result;
+          navigate(`/verifyemail?user_id=${user_id}`)
         } else {
           if (result.statusCode == 409) {
             emailField.setError('Existing email')

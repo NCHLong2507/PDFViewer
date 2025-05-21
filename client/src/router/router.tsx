@@ -1,11 +1,13 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Authentication from "../pages/Authentication/Authentication";
 import LoginContainer from "../components/LoginContainer";
 import SignupContainer from "../components/SignupContainer";
 import VerifyEmail from "../pages/Authentication/VerifyEmail";
 import SuccessVerifyEmail from "../pages/Authentication/SuccessVerifyPage";
 import DocumentList from "../components/DocumentList";
+import DocumentDetailed from "../components/DocumentDetailed";
 import PageNotFound from "../pages/PageNotFound";
+import NoPermissionPage from "../pages/Document/NoPermissionPage";
 import Document from "../pages/Document/Document";
 const router = createBrowserRouter([
   {
@@ -15,7 +17,15 @@ const router = createBrowserRouter([
       {
         path: "documentlist",
         element: <DocumentList />,
+      }, 
+      {
+        path: "documentdetailed",
+        element: <DocumentDetailed />,
       },
+      {
+        path: "nopermission",
+        element: <NoPermissionPage/>
+      }
     ],
   },
   {

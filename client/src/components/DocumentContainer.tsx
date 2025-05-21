@@ -20,11 +20,12 @@ interface DocumentContainerProps {
   setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>,
   setId: React.Dispatch<React.SetStateAction<number>>,
   setCount: React.Dispatch<React.SetStateAction<number>>,
+  count: number,
   sortOrder: boolean,
   setSortOrder: React.Dispatch<React.SetStateAction<boolean>>,
 }
-export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage,documentList, setDocumentList, setId, setCount, sortOrder, setSortOrder  }: DocumentContainerProps) {
-  const isEmpty = false;
+export default function DocumentContainer({ showAlert, setShowAlert, showSuccess, setShowSuccess,alertMessage, setAlertMessage,documentList, setDocumentList, setId, setCount,count, sortOrder, setSortOrder  }: DocumentContainerProps) {
+  const isEmpty = count==0;
   const documents = documentList.map(doc => {
   const date = new Date(doc.updatedAt);
   return {
@@ -34,13 +35,14 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
   };
 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const prevscrollHeight = useRef(0);
+  const prevscrollHeight = useRef<number>(0);
 
   const onScroll = useCallback(()=> {
     const container = containerRef.current;
     if (!container) return;
     const {scrollTop, scrollHeight, clientHeight} = container;
-    if (prevscrollHeight.current < scrollHeight && scrollHeight - scrollTop - clientHeight < 100) {
+    if (scrollTop + clientHeight >= scrollHeight) return;
+    if (prevscrollHeight.current != scrollHeight && scrollHeight - scrollTop - clientHeight < 100) {
       prevscrollHeight.current = scrollHeight;
       setId((prev) => prev+1);
     }
@@ -48,11 +50,14 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
   const handleAscSort = () => {
     if (sortOrder === true) return;
     setSortOrder(true);
+    setId(0);
   }
   const handleDescSort = () => { 
     if (sortOrder === false) return;
     setSortOrder(false);
+    setId(0);
   }
+  
   const {userInfor} = useAuth();
   
   return (
@@ -137,7 +142,7 @@ export default function DocumentContainer({ showAlert, setShowAlert, showSuccess
                     {doc.name}
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap flex h-[77.36px] items-center text-base text-gray-900">
-                    <span>{userInfor.email === doc.owner.email ? `${doc.owner.name} (You)` : doc.owner.name}</span>
+                    <span>{ (userInfor && userInfor.email === doc.owner.email) ? `${doc.owner.name} (You)` : doc.owner.name}</span>
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap text-base  text-left">
                     <div>{doc.lastUpdatedDate}</div>

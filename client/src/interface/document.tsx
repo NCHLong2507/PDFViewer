@@ -3,6 +3,13 @@ export interface Document {
     owner: {name:string, email: string},
     name: string,
     fileUrl: string,
-    updatedAt: string
+    updatedAt: string,
+    collaborator?: {
+    user: {
+      name: string;
+      email: string;
+    };
+    role: string;
+  }[];
 }
 
