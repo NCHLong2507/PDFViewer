@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
 import Logo from '../../assets/DSV.logo.png';
 import SuccessVerify from "../../assets/verify-success.png";
 import { useNavigate } from "react-router-dom";
 export default function VerifyEmail() {
+  useEffect(()=>{
+    localStorage.removeItem('email');
+  });
   const navigate = useNavigate();
   return(
     <div>

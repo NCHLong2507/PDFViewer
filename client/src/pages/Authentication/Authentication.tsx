@@ -4,6 +4,7 @@ import Logomark from '../../components/Logomark';
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageNotFound from '../PageNotFound';
+import { Toaster } from "react-hot-toast";
 
 export default function Authentication() {
   if (location.pathname === "/document") {
@@ -24,6 +25,7 @@ export default function Authentication() {
   }, []);
   return (
     <div className="bg-auth flex flex-row justify-between">
+      <Toaster />
       <Logomark/>
       <Outlet/>
     </div>
