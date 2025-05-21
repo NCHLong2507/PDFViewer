@@ -11,21 +11,19 @@ export class DocumentDTO {
   if (typeof owner === 'string') {
     return owner; 
   } else if (owner && typeof owner === 'object' && 'name' in owner) {
-    return { name: owner.name }; 
+    return { name: owner.name, email: owner.email }; 
   }
   return owner; 
 })
-owner: { name: string } | string;
+  owner: { name: string, email: string } | string;
 
-
+  @Expose()
+  name: string
   @Expose()
   fileUrl: string
 
   @Expose()
   updatedAt: string
-
-  @Exclude()
-  collaborator
 
   @Exclude()
   createdAt: string

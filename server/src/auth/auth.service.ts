@@ -6,14 +6,16 @@ import { RegisterDTO } from 'src/auth/DTO/RegisterDTO';
 import { UserDTO } from 'src/user/DTO/UserDTO';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 import * as brypt from 'bcrypt';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService
-
+    private readonly jwtService: JwtService,
+    private readonly mailService: MailService
   ) {}
 
   async comparePassword(
@@ -38,49 +40,52 @@ export class AuthService {
   }
 
 
+  setCookie(res: Response, name: string, value: string, maxAge: number) {
+    res.cookie(name, value, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // dùng true khi production
+      sameSite: 'strict',
+      maxAge,
+    });
+  }
 
-  async signup(user: RegisterDTO): Promise<{access_token: string, refresh_token: string}> {
+  async signup(user: RegisterDTO): Promise<string> {
     const { name, email, password } = user;
 
-    const existingUser = await this.userService.findbyEmail(email, false);
+    const existingUser = await this.userService.findbyEmail(email);
     if (existingUser !== null) {
       throw new ConflictException('User already exists');
     }
-
-    const hashedPassword = await bcrypt.hash(password, 12); 
-
-    const access_token = await this.jwtService.signAsync({name,email,password: hashedPassword},{
-      expiresIn: '30m',
-      secret: process.env.JWT_SECRET
-    });
-
-    const refresh_token = await this.jwtService.signAsync({name,email,password: hashedPassword}, {
-      expiresIn: '14d',
-      secret: process.env.JWT_REFRESH_KEY
-    })
-    return {
-      access_token,
-      refresh_token
-    }
+    const newUser = await this.userService.createUser(name,email,password);
+    const userDTO = plainToInstance(UserDTO, newUser.toObject(),{excludeExtraneousValues: true});
+    return userDTO._id;
   } 
 
-  async registerUser(token: string): Promise<UserDTO> {
-    let payload: {
-      name: string,
-      email: string,
-      password: string
-    };
-    try {
-      payload = await this.jwtService.verifyAsync(token, {
-      secret: process.env.JWT_VERIFY_KEY,
-    });
-    } catch (error) {
-      throw new BadRequestException('Invalid email request');
+  async resendEmail(_id: string) {
+    const user = await this.userService.findById(_id,false); 
+    if (!user) {
+        throw new NotFoundException('User not found');
     }
+    if (user.isVerify) {
+      throw new BadRequestException('Your account is already verified');
+    } 
+    if (!user.email) {
+      throw new BadRequestException('User email not found');
+    }
+    const mailoptions = {
+      subject: 'Verification email',
+      template: 'signup-confirmation-email',
+      email: user.email,
+      context: {name: user?.name,verificationLink: `http://localhost:3000/auth/verifyUser?user_id=${user?._id}`}
+    }
+    this.mailService.sendEmail(mailoptions);
+  }
 
-    const { name, email, password } = payload;
-    
-    const newUser = await this.userService.createUser(name, email, password,true);
+  async verifyUser(_id: string): Promise<UserDTO> {
+    if (!_id) {
+      throw new BadRequestException('User ID is required');
+    }
+    const newUser = await this.userService.updateUser(_id,{isVerify: true});
     const userDTO = plainToInstance(UserDTO, newUser.toObject(),{excludeExtraneousValues: true});
     return userDTO;
   }
@@ -89,6 +94,7 @@ export class AuthService {
     const { email, password } = body;
     const foundUser = await this.userService.findbyEmail(email);
     if (foundUser) {
+      
       const isPasswordValid = await this.comparePassword(password,foundUser.password);
       if (isPasswordValid) {
         const userDTO = plainToInstance(UserDTO,foundUser.toObject(),{excludeExtraneousValues:true});

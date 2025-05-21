@@ -22,4 +22,7 @@ export class UserDTO {
 
   @Exclude()
   updatedAt: string
+
+  @Exclude()
+  isVerify: boolean
 }

@@ -22,9 +22,7 @@ export class MailService {
         template: params.template,
         context: params.context
       };
-      console.log("Wait to send email successfully")
       await this.mailerService.sendMail(sendMailParams);
-      console.log("Send email successfully")
     } catch (error) {
       console.log(error)
     }

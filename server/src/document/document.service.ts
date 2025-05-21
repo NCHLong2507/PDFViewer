@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Query } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Document,DocumentDocument } from './document.schema';
@@ -12,10 +12,19 @@ export class DocumentService {
     private documentModel: Model<Document>
   ) {}
   
-  async getAllDocument() : Promise<any> {
-    const documents = await this.documentModel.find().populate('owner','name');
-    const documentDTOs = plainToInstance(DocumentDTO,documents,{excludeExtraneousValues:true});
-    return documentDTOs;
+  async getDocumentLazyLoading(id: string, desc: boolean = true) : Promise<DocumentDTO[]> {
+    const page = parseInt(id, 10); 
+    const limit = 10;
+    const skip = page * limit;
+    const updatedAt = desc ? -1 : 1;
+    const documents = await this.documentModel
+    .find()
+    .sort({ updatedAt })
+    .skip(skip)
+    .limit(limit)
+    .populate('owner', { name: 1, email: 1 });
+    const documentDTOs = plainToInstance(DocumentDTO,documents,{excludeExtraneousValues:true});  
+    return documentDTOs; 
   }
 
   async createDocument(name: string, fileUrl: string, ownerId:string ) : Promise<DocumentDTO> {
@@ -24,9 +33,12 @@ export class DocumentService {
     }
     const owner = new Types.ObjectId(ownerId);
     const newdocument = await this.documentModel.create({owner,name,fileUrl});
-    const documentDTO = plainToInstance(DocumentDTO,newdocument,{excludeExtraneousValues: true})
-    console.log(documentDTO);
+    const populatedDocument = await this.documentModel.findById(newdocument._id).populate('owner', 'name email')
+    const documentDTO = plainToInstance(DocumentDTO, populatedDocument, { excludeExtraneousValues: true });    
     return documentDTO; 
   }
 
+  async getDocumentCount() : Promise<number> {
+    return await this.documentModel.countDocuments();
+  } 
 }

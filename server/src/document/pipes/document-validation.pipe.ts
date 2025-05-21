@@ -9,7 +9,7 @@ export class FileSizeValidationPipe implements PipeTransform {
       throw new BadRequestException('File is required.');
     }
     if (value.size > maxSize || !allowedExtension.test(value.originalname)) {
-      throw new BadRequestException('Please ensure the upload file does not require password');
+      throw new BadRequestException('Please ensure the file is not more than 20MB and in .pdf format');
     }
     return value;
   }
