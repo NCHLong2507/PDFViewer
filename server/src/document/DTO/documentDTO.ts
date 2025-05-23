@@ -1,30 +1,28 @@
-import { Expose, Exclude, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
 export class DocumentDTO {
   @Expose()
-  @Transform(params => params.obj._id)
-  _id: string
+  @Transform(({ obj }) => obj._id.toString()) 
+  _id: string;
 
   @Expose()
-  @Transform(params => {
-  const owner = params.obj.owner;
-  if (typeof owner === 'string') {
-    return owner; 
-  } else if (owner && typeof owner === 'object' && 'name' in owner) {
-    return { name: owner.name, email: owner.email }; 
-  }
-  return owner; 
-})
-  owner: { name: string, email: string } | string;
+  @Transform(({ obj }) => {
+    const owner = obj.owner;
+    if (typeof owner === 'string') {
+      return owner;
+    } else if (owner && typeof owner === 'object' && 'name' in owner && 'email' in owner) {
+      return { name: owner.name, email: owner.email };
+    }
+    return owner;
+  })
+  owner: { name: string; email: string } | string;
 
   @Expose()
-  name: string
-  @Expose()
-  fileUrl: string
+  name: string;
 
   @Expose()
-  updatedAt: string
+  fileUrl: string;
 
-  @Exclude()
-  createdAt: string
+  @Expose()
+  updatedAt: string;
 }

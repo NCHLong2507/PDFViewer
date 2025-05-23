@@ -5,6 +5,7 @@ import api from '../api/axios';
 import type { AxiosProgressEvent } from "axios";
 import { PDFDocument } from 'pdf-lib';
 import type { Document } from "../interface/document";
+import type { QueryObserverResult } from "@tanstack/react-query";
 
 
 interface UploadButtonProps {
@@ -12,8 +13,10 @@ interface UploadButtonProps {
   setShowAlert: React.Dispatch<React.SetStateAction<boolean>>;
   setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
   setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>;
-  setCount: React.Dispatch<React.SetStateAction<number>>;
-  sortOrder: boolean
+  sortOrder: boolean,
+  refetchCount: () => Promise<QueryObserverResult<number, unknown>>;
+  count: number
+
 }
 
 async function isPdfPasswordProtected(file: File): Promise<boolean> {
@@ -34,7 +37,7 @@ async function isPdfPasswordProtected(file: File): Promise<boolean> {
   }
 }
 
-export default function UploadButton({setShowSuccess, setShowAlert, setAlertMessage,setDocumentList, setCount, sortOrder}: UploadButtonProps) {
+export default function UploadButton({setShowSuccess, setShowAlert, setAlertMessage,setDocumentList, refetchCount, count, sortOrder}: UploadButtonProps) {
   const [isUploadModal, setIsUploadModal] = useState(false);
   const [uploadProgress,setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +51,6 @@ export default function UploadButton({setShowSuccess, setShowAlert, setAlertMess
     if (!file) return;
     try {
       const hasPassword = await isPdfPasswordProtected(file);
-      console.log(hasPassword)
       if (hasPassword) {
         setAlertMessage('Please ensure the upload file does not required password');
         setShowAlert(true);
@@ -83,10 +85,17 @@ export default function UploadButton({setShowSuccess, setShowAlert, setAlertMess
       setTimeout(() => {
         setIsUploadModal(false); 
         setShowSuccess(true); 
-        if (sortOrder === false) {
+        if (count<10) {
+          if (sortOrder === false ) {
+            setDocumentList((prev)=> [result.data.document,...prev]);
+          } else {
+            setDocumentList((prev)=> [...prev,result.data.document]);
+          }
+        }
+        else if (sortOrder === false) {
           setDocumentList((prev)=> [result.data.document,...prev]);
         } 
-        setCount((prev) => prev+1);
+        refetchCount();
         setTimeout(() => {
           setShowSuccess(false);
         }, 3000);

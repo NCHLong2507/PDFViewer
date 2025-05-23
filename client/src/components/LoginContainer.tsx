@@ -41,7 +41,9 @@ export default function LoginContainer() {
         const result = await login(emailField.value, passwordField.value);
         if (result && result.success) {
           setUserInfor(result.user);
-          navigate('/document/documentlist');
+          const redirectPath = localStorage.getItem('redirectAfterLogin') || '/document/documentlist';
+          localStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath, { replace: true }); 
         } else {
           setLoginError('Incorrect email or password');
           emailField.setError('');

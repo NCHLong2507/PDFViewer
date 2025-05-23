@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { MailModule } from 'src/mail/mail.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { DocumentModule } from 'src/document/document.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { PassportModule } from '@nestjs/passport';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRED },
     }), 
-    MailModule
+    MailModule,
+    DocumentModule
   ],
   controllers: [AuthController],
   providers: [AuthService],

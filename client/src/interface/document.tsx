@@ -4,12 +4,5 @@ export interface Document {
     name: string,
     fileUrl: string,
     updatedAt: string,
-    collaborator?: {
-    user: {
-      name: string;
-      email: string;
-    };
-    role: string;
-  }[];
 }
 

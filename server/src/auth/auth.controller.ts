@@ -17,13 +17,15 @@ import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Response,Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { DocumentService } from 'src/document/document.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService, 
     private readonly mailService: MailService, 
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly documentService: DocumentService
   ) {}
   
   @UseGuards(LocalAuthGuard)
@@ -110,6 +112,20 @@ export class AuthController {
     return {
       status: "success",
       user: req.user
+    }
+  }
+
+  @UseGuards(JwtAuthGuard) 
+  @Get('/permission')
+  async GetPermission(@NestRequest()req: Request, @Query('id') id: string) {
+    const cur_user = req.user as {email: string, _id: string, name: string};
+    if (!cur_user || !cur_user.email) {
+      throw new BadRequestException('Mising data');
+    }
+    const actions = await this.documentService.getDocumentPermissionPerUser(id, cur_user.email);
+    return {
+      status: "success",
+      actions
     }
   }
 }

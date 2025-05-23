@@ -1,4 +1,4 @@
-import { Get,Post, UploadedFile, UseInterceptors,UseGuards, Request as NestRequest, BadRequestException, Query } from '@nestjs/common';
+import { Get,Post,Put, UploadedFile, UseInterceptors,UseGuards, Request as NestRequest, BadRequestException, Query, Body } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -6,6 +6,7 @@ import { FileSizeValidationPipe } from './pipes/document-validation.pipe';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { storage } from 'src/cloudinary.storage';
 import * as fs from 'fs';
+import { DocumentPermissionDTO } from './DTO/document_permissionDTO';
 @Controller('document')
 export class DocumentController {
   constructor(
@@ -22,7 +23,6 @@ export class DocumentController {
   }}))
   async uploadFile(@NestRequest() req,@UploadedFile( new FileSizeValidationPipe()) file: Express.Multer.File) {
     try {
-      console.log(req.user)
       const documentDTO = await this.documentService.createDocument(file.originalname,file.path,req.user._id);
       return {
         status: "success",
@@ -38,7 +38,7 @@ export class DocumentController {
     
   }
 
-
+  @UseGuards(JwtAuthGuard)
   @Get('loaddocument')
   async getDocumentLazyLoading(@Query('id')id: string, @Query('sort') sort: string) {
     let desc: boolean = true;
@@ -50,6 +50,7 @@ export class DocumentController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('documentcount')
   async GetDocumentCount() {
     const document_count = await this.documentService.getDocumentCount();
@@ -58,4 +59,44 @@ export class DocumentController {
       count: document_count
     }
   }
+  
+
+  @UseGuards(JwtAuthGuard)
+  @Get('documentInfor') 
+  async GetDocumentInfor(@Query('id') _id: string) {
+    const document = await this.documentService.getDocumentInfor(_id);
+    return {
+      status: "success",
+      document
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('addaccesscontrol')
+  async AddAcessControl(@Query('id')_id: string, @Body() body: { emailList: string[]; role: string }) {
+    await this.documentService.AddDocumentAccessControl(_id, body); 
+    return {
+      status: "success"
+    }
+  }
+
+  @UseGuards(JwtAuthGuard) 
+  @Put('updateaccesscontrol') 
+  async UpdateAccessControl(@Query('id')_id: string,@Body() body: DocumentPermissionDTO[] ) {
+    await this.documentService.UpdateDocumentAcessControl(_id,body);
+    return {
+      status: "success"
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('documentpermission') 
+  async GetDocumentPermission(@Query('id')_id: string) {
+    const document_permission = await this.documentService.GetDocumentPermission(_id);
+    return {
+      status: "success",
+      permission: document_permission
+    }
+  }
+
 }

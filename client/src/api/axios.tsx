@@ -1,5 +1,4 @@
 import axios from "axios";
-
 const api = axios.create({
   baseURL: 'http://localhost:3000',
   withCredentials: true
@@ -28,9 +27,11 @@ api.interceptors.response.use(
 
       try {
         await api.get('/auth/refresh'); 
+        console.log(originalRequest)
         return api(originalRequest); 
       } catch  {
         await api.post('/auth/logout');
+        window.localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
         window.location.href="http://localhost:5173/auth/login";
       } finally {
         isRefreshing = false;

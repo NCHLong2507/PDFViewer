@@ -92,10 +92,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           await api.get('/auth/refresh'); 
           const retry = await api(originalRequest); 
-          console.log(retry)
           if (retry && retry.data.status === 'success') {
             setUserInfor(retry.data.user);
-            console.log("A",userInfor)
             return true;
           }
         } catch {

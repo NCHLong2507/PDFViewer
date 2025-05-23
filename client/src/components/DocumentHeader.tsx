@@ -1,15 +1,17 @@
 import UploadButton from "./Uploadbutton"
 import type { Document } from "../interface/document";
+import type { QueryObserverResult } from "@tanstack/react-query";
 interface DocumentHeaderProps {
   setShowAlert: React.Dispatch<React.SetStateAction<boolean>>;
   setShowSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
   setDocumentList: React.Dispatch<React.SetStateAction<Document[]>>,
-  setCount:  React.Dispatch<React.SetStateAction<number>>,
+  refetchCount: () => Promise<QueryObserverResult<number, unknown>>;
   sortOrder: boolean,
-  count: number
+  count: number,
+
 }
-export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertMessage, setDocumentList, count,setCount, sortOrder }: DocumentHeaderProps) {
+export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertMessage, setDocumentList, count,refetchCount, sortOrder }: DocumentHeaderProps) {
   const isEmpty = count == 0;
   return (
     <div className="h-[52px] w-full flex justify-between items-center py-[8px]">
@@ -21,7 +23,7 @@ export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertM
         </div>
       </div>
       {
-        !isEmpty && (<UploadButton setShowAlert={setShowAlert} setShowSuccess={setShowSuccess} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} setCount={setCount} sortOrder={sortOrder}/>)
+        !isEmpty && (<UploadButton setShowAlert={setShowAlert} setShowSuccess={setShowSuccess} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} refetchCount={refetchCount} sortOrder={sortOrder} count={count} />)
       }
     </div>
   )
