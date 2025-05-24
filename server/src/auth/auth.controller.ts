@@ -140,6 +140,7 @@ export class AuthController {
     if (!user) {
       user = await this.authService.GoogleSignup(gg_access_token);
     }
+    console.log(user)
     const access_token = await this.authService.signToken(user);
     const refresh_token = await this.authService.signToken(user,'14d',process.env.JWT_REFRESH_KEY);
     this.authService.setCookie(res,'refresh_token', refresh_token, 14 * 24 * 60 * 60 * 1000);

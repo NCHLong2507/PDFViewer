@@ -39,7 +39,7 @@ export class DocumentService {
       .sort({ updatedAt })
       .skip(skip)
       .limit(limit)
-      .populate('owner', { name: 1, email: 1 });
+      .populate('owner','name email picture');
     const documentDTOs = plainToInstance(DocumentDTO, documents, {
       excludeExtraneousValues: true,
     });
@@ -62,7 +62,7 @@ export class DocumentService {
     });
     const populatedDocument = await this.documentModel
       .findById(newdocument._id)
-      .populate('owner', 'name email');
+      .populate('owner', 'name email picture');
     const documentDTO = plainToInstance(DocumentDTO, populatedDocument, {
       excludeExtraneousValues: true,
     });
@@ -80,7 +80,7 @@ export class DocumentService {
     const documentID = new mongoose.Types.ObjectId(_id);
     const foundDocument = await this.documentModel
       .findById(documentID)
-      .populate('owner', 'name email');
+      .populate('owner', 'name email picture');
     const retdocument = plainToInstance(DocumentDTO, foundDocument, {
       excludeExtraneousValues: true,
     });
@@ -100,14 +100,14 @@ export class DocumentService {
 
     const document = await this.documentModel
       .findById(documentID)
-      .populate('owner', 'name email')
+      .populate('owner', 'name email picture')
     if (!document) {
       throw new BadRequestException('Document is invalid or being removed');
     }
     let role: string;
     const collaborator = await this.documentPermisionModel
       .find({ document: documentID })
-      .populate('user', 'name email');
+      .populate('user', 'name email picture');
     const collaboratorList = plainToInstance(
       DocumentPermissionDTO,
       collaborator,
@@ -139,7 +139,7 @@ export class DocumentService {
       throw new BadRequestException('Missing data');
     }  
     const documentID = new mongoose.Types.ObjectId(_id);
-    const collaborator = await this.documentPermisionModel.find({document:documentID}).populate('user','_id name email'); 
+    const collaborator = await this.documentPermisionModel.find({document:documentID}).populate('user','_id name email picture'); 
     const collaboratorDTO = plainToInstance(DocumentPermissionDTO, collaborator,{excludeExtraneousValues:true});
     return collaboratorDTO;
   }

@@ -157,7 +157,14 @@ export default function SignupContainer() {
               <p className=" text-sm">{googleSignupError.trim()}</p>
             </div>
           )}
-          <form className="w-full min-h-[336px] flex flex-col gap-[16px]">
+          <form
+            id="form-signup"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSignup();
+            }}
+            className="w-full min-h-[336px] flex flex-col gap-[16px]"
+          >
             <div className="w-full flex flex-col gap-[8px] justify-between min-h-[70px]">
               <label className="leading-[1.4] h-[22px]">
                 Full Name<span className="text-[#ff0101] ml-[4px]">*</span>
@@ -293,8 +300,9 @@ export default function SignupContainer() {
             )}
           </div>
           <button
+            type="submit"
+            form="form-signup"
             className="w-[100%] h-[38px] hover:bg-[#e6b800] bg-[#F5C731] p-[12px] gap-[8px] items-center flex justify-center text-base font-medium rounded-[8px]"
-            onClick={handleSignup}
           >
             Sign up
           </button>

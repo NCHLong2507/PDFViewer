@@ -11,11 +11,11 @@ export class DocumentDTO {
     if (typeof owner === 'string') {
       return owner;
     } else if (owner && typeof owner === 'object' && 'name' in owner && 'email' in owner) {
-      return { name: owner.name, email: owner.email };
+      return { name: owner.name, email: owner.email, picture: owner.picture };
     }
     return owner;
   })
-  owner: { name: string; email: string } | string;
+  owner: { name: string; email: string, picture: string } | string;
 
   @Expose()
   name: string;

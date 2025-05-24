@@ -41,6 +41,7 @@ export class AuthService {
       _id: user._id,
       name: user.name,
       email: user.email,
+      picture: user.picture
     };
     const access_token = await this.jwtService.signAsync(payload, {
       expiresIn,
@@ -160,7 +161,7 @@ export class AuthService {
       );
     }
     const user = await userinfoResponse.json();
-    const { name, email, subject, picture } = user;
+    const { name, email, sub, picture } = user;
     const existingUser = await this.userService.findbyEmail(email);
     if (existingUser) {
       throw new ConflictException('This email address is currently being used with email & password.Please sign in with email & password.')
@@ -168,7 +169,7 @@ export class AuthService {
     const newUser = await this.userService.createGoogleAccount(
       name,
       email,
-      subject,
+      sub,
       picture,
     );
     const userDTO = plainToInstance(UserDTO, newUser, {

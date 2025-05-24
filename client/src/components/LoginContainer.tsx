@@ -6,7 +6,6 @@ import { FcGoogle } from "react-icons/fc";
 import { FiEyeOff, FiEye } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import useField from "../hooks/useField";
-import api from "../api/axios";
 const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -124,6 +123,7 @@ export default function LoginContainer() {
           </div>
         )}
         <form
+          id="form-login"
           className="w-full min-h-[160px] flex flex-col gap-[16px]"
           onSubmit={(e) => {
             e.preventDefault();
@@ -139,7 +139,7 @@ export default function LoginContainer() {
               onChange={(e) => {
                 emailField.bind.onChange(e);
                 setLoginError("");
-                setGoogleLoginError(false)
+                setGoogleLoginError(false);
               }}
               className={`py-[12px] px-[16px] h-[40px]  rounded-[8px] min-w-[240px] bg-white
                 ${
@@ -166,8 +166,7 @@ export default function LoginContainer() {
                 onChange={(e) => {
                   passwordField.bind.onChange(e);
                   setLoginError("");
-                  setGoogleLoginError(false)
-
+                  setGoogleLoginError(false);
                 }}
                 type={showPassword ? "text" : "password"}
                 className={`py-[12px] pr-[40px] pl-[16px] h-[40px]   rounded-[8px] min-w-[240px] bg-white w-full 
@@ -200,9 +199,10 @@ export default function LoginContainer() {
         </form>
 
         <button
+          type="submit"
+          form="form-login"
           className={`w-[100%] h-[38px]  p-[12px] gap-[8px] items-center flex justify-center text-base font-medium rounded-[8px] hover:bg-[#e6b800] bg-[#F5C731] text-[rgba(44,44,44,1)
             `}
-          onClick={handleSignIn}
         >
           Sign in
         </button>

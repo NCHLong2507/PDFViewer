@@ -30,6 +30,10 @@ body {
   filter: drop-shadow(0px 8px 6px rgba(0, 0, 0, 0.15));
   
 }
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
 @media (prefers-color-scheme: light) {
   :root {
     background-color: #ffffff;
