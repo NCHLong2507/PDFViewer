@@ -128,4 +128,25 @@ export class AuthController {
       actions
     }
   }
+
+  @Get('/google/authentication')
+  async GoogleAuthentication(@NestRequest()req: Request, @Res({passthrough:true}) res: Response) {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+      throw new UnauthorizedException('Missing headers');
+    }
+    const gg_access_token = authHeader.split(' ')[1];
+    let user = await this.authService.GoogleLogin(gg_access_token);
+    if (!user) {
+      user = await this.authService.GoogleSignup(gg_access_token);
+    }
+    const access_token = await this.authService.signToken(user);
+    const refresh_token = await this.authService.signToken(user,'14d',process.env.JWT_REFRESH_KEY);
+    this.authService.setCookie(res,'refresh_token', refresh_token, 14 * 24 * 60 * 60 * 1000);
+    this.authService.setCookie(res, 'access_token', access_token, 30 * 60 * 1000);
+    return {
+      status: "success",
+      user
+    }
+  }
 }

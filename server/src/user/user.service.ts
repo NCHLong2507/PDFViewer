@@ -28,7 +28,10 @@ export class UserService {
     const user = await this.userModel.findOne({ _id: objectId, isVerify });
     return user;
   }
-
+  async findBySubject(subject: string, isVerify:boolean =true): Promise<UserDocument | null> {
+    const user = await this.userModel.findOne({ subject, isVerify });
+    return user;
+  }
   async updateUser(id: string, updates: Partial<UserDocument>): Promise<UserDocument> {
     if (!id) {
       throw new BadRequestException('User ID is required');
@@ -59,6 +62,14 @@ export class UserService {
     }
     password = await bcrypt.hash(password,12);
     const newUser = await this.userModel.create({ name, email, password });
+    return newUser;
+  }
+
+  async createGoogleAccount(name: string, email: string, subject:string, picture: string): Promise<UserDocument> {
+    if (!name || !email || !subject) {
+      throw new BadRequestException('Name,email, subject are required');
+    }
+    const newUser = await this.userModel.create({name,email,subject,picture,isVerify:true});
     return newUser;
   }
 }

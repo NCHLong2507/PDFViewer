@@ -14,15 +14,6 @@ export class UserDTO {
   @Expose()
   email: string;
 
-  @Exclude()
-  password: string;
-
-  @Exclude()
-  createdAt: string
-
-  @Exclude()
-  updatedAt: string
-
-  @Exclude()
-  isVerify: boolean
+  @Expose()
+  picture: string;
 }

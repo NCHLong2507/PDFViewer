@@ -29,7 +29,7 @@ export default function Authentication() {
 
   if (isCheckingAuth) return null;
   return (
-    <div className="bg-auth flex flex-row justify-between">
+    <div className="bg-auth flex flex-row items-center justify-end">
       <Toaster />
       <Logomark/>
       <Outlet/>
