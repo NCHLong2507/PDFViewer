@@ -55,7 +55,7 @@ export default function DocumentDetailed() {
   }
 
   return (
-    <div className='flex-col flex gap-[16px] px-[24px] pt-[24px] pb-[16px]'>
+    <div className='flex-col flex gap-[10px] px-[24px] pt-[24px] pb-[16px]'>
       <DocumentDetailedHeader
         document={document}
         setShowShareModal={setShowShareModal}

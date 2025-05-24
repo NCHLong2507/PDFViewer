@@ -2,7 +2,7 @@ import { PiUserCircleThin } from "react-icons/pi";
 import type { Document as DocumentDTO } from "../interface/document";
 import { useState, useEffect, type SetStateAction } from "react";
 import api from "../api/axios";
-import { useQuery, type QueryObserverResult } from "@tanstack/react-query";
+import { type QueryObserverResult } from "@tanstack/react-query";
 
 interface ShareModalProps {
   document: DocumentDTO;

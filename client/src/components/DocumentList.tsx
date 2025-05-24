@@ -18,24 +18,35 @@ export default function DocumentList() {
   const [id, setId] = useState(0);
   const [sortOrder, setSortOrder] = useState(false);
   const prevSortOrder = useRef(sortOrder);
+  const [isFirst, setIsFirst] = useState(true);
   const { data: count, refetch: refetchCount } = useQuery({
     queryKey: ["documentCount"],
     initialData: 0,
     queryFn: fetchDocumentCount,
     refetchOnWindowFocus: false,
   });
-  const fetchDocuments = async (id: number, sortOrder: boolean) => {
+
+  const fetchDocuments = async () => {
     const sort = sortOrder ? 1 : -1;
     const res = await api.get(`/document/loaddocument?id=${id}&sort=${sort}`);
-    setDocumentList(initialDocuments);
     return res.data?.documents || [];
   };
-  const { data: initialDocuments = [] } = useQuery({
+
+  const { data: initialDocuments = [], isFetched } = useQuery({
     queryKey: ["documents"],
-    queryFn: () => fetchDocuments(id, sortOrder),
+    queryFn: fetchDocuments,
     refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchOnMount: false,
+    enabled: isFirst,
   });
+
+  useEffect(() => {
+    if (isFetched) {
+      setDocumentList(initialDocuments);
+      prevSortOrder.current = sortOrder;
+    }
+  }, [isFetched]);
+
   useEffect(() => {
     const LazyLoadDocuments = async () => {
       const sort = sortOrder ? 1 : -1;
@@ -45,16 +56,21 @@ export default function DocumentList() {
         );
         const documents = results.data?.documents;
         if (prevSortOrder.current !== sortOrder) {
-          setDocumentList(documents);
+          setDocumentList(documents); // sort changed, reset
           prevSortOrder.current = sortOrder;
         } else {
-          setDocumentList((prevList) => [...prevList, ...documents]);
-
+          setDocumentList(
+            (prevList) => prevList && [...prevList, ...documents]
+          );
         }
       } catch (err: any) {
-        throw err;
+        console.log(err);
       }
     };
+    if (isFirst) {
+      setIsFirst(false);
+      return;
+    }
     LazyLoadDocuments();
   }, [id, sortOrder]);
   const props = {
