@@ -5,7 +5,7 @@ import { RiAlertLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import { FiCheckCircle } from "react-icons/fi";
 import type { Document } from "../interface/document";
-import { useRef, useCallback, Suspense } from "react";
+import { useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -47,7 +47,7 @@ export default function DocumentContainer({
   refectInitialDocuments,
 }: DocumentContainerProps) {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const documents = documentList.map((doc) => {
     const date = new Date(doc.updatedAt);
     return {

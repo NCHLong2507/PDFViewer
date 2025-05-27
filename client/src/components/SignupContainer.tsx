@@ -6,7 +6,6 @@ import { FiEyeOff, FiEye } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useField from "../hooks/useField";
-import {toast} from "react-hot-toast";
 
 const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

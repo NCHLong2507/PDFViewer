@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Logomark from "../../components/Logomark";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
