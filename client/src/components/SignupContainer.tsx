@@ -4,8 +4,9 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { FcGoogle } from "react-icons/fc";
 import { FiEyeOff, FiEye } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useField from "../hooks/useField";
+import {toast} from "react-hot-toast";
 
 const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -25,14 +26,24 @@ export default function SignupContainer() {
   const loginGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setGoogleSignupError("");
-      const result = await googleLogin(tokenResponse.access_token);
+      const result = await googleLogin(
+        tokenResponse.access_token,
+        invitation_token
+      );
       if (result && result.success) {
         setUserInfor(result.user);
-        const redirectPath =
-          localStorage.getItem("redirectAfterLogin") ||
-          "/document/documentlist";
-        localStorage.removeItem("redirectAfterLogin");
-        navigate(redirectPath, { replace: true });
+        if (result.directURL) {
+          const redirectPath = result.directURL;
+          localStorage.removeItem("redirectAfterLogin");
+          console.log(redirectPath)
+          navigate(redirectPath, { replace: true });
+        } else {
+          const redirectPath =
+            localStorage.getItem("redirectAfterLogin") ||
+            "/document/documentlist";
+          localStorage.removeItem("redirectAfterLogin");
+          navigate(redirectPath, { replace: true });
+        }
       } else {
         if (result && result.statusCode === 409) {
           setGoogleSignupError(
@@ -53,6 +64,8 @@ export default function SignupContainer() {
   });
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const invitation_token = searchParams.get("invitation_token");
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const target = e.target as HTMLInputElement;
     setIsChecked(target.checked);
@@ -106,17 +119,22 @@ export default function SignupContainer() {
     }
     if (!hasError) {
       try {
-        const result = await signup({
-          name: fullnameField.value,
-          email: emailField.value,
-          password: passwordField.value,
-        });
+        const result = await signup(
+          {
+            name: fullnameField.value,
+            email: emailField.value,
+            password: passwordField.value,
+          },
+          invitation_token
+        );
         if (result && result.success) {
           const { user_id } = result;
           navigate(`/verifyemail?user_id=${user_id}`);
         } else {
           if (result.statusCode == 409) {
-            emailField.setError("Existing email");
+            emailField.setError(result.message as string);
+          } else {
+            setGoogleSignupError(result.message as string);
           }
         }
       } catch (err) {

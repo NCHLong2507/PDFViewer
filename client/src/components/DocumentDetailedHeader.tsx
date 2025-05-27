@@ -15,10 +15,14 @@ interface DocDetailHeaderProps {
 
 export default function DocumentDetailedHeader ({document, setShowShareModal}: DocDetailHeaderProps) {
   const navigate = useNavigate();
+  const handleBack = () => {
+    navigate("/document/documentlist");
+
+  };
   return (
     <div className="flex justify-between w-full h-[52px] pt-2 pb-2">
-      <div className="w-[524px] flex items-center justify-start h-full gap-3">
-        <FaArrowLeft onClick={() => navigate(-1)} className="w-6 h-6 pr-2"/>
+      <div className="min-w-[524px] flex items-center justify-start h-full gap-3">
+        <FaArrowLeft onClick={handleBack} className="w-6 h-6 pr-2"/>
         <strong className="text-center justify-center text-2xl">{document?document.name:""}</strong>
       </div>
       <div className="flex gap-3">

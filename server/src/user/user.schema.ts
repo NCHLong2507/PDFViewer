@@ -26,6 +26,9 @@ export class User {
   @IsOptional()
   picture: string
 
+  @Prop()
+  @IsOptional()
+  invitation_token: string
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

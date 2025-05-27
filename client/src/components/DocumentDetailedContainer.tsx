@@ -178,35 +178,39 @@ export default function DocumentDetailedContainer({
 
           {/* Color Section */}
           <div className="mb-4">
-            {/* <div className="flex gap-2">
+            <div className="flex gap-2">
               {colors.map((color, index) => (
                 <button
                   key={index}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full focus:outline-none hover:ring-1 hover:ring-black `}
+                  className="w-8 h-8 flex items-center justify-center rounded-full focus:outline-none"
                 >
                   <div
-                    className={`w-6 h-6 rounded-full border-[1.5px] border-gray-200  ${
-                      color === "transparent"
-                        ? "bg-transparent"
-                        : color === "black"
-                        ? "bg-black"
-                        : color === "red"
-                        ? "bg-red-500"
-                        : color === "blue"
-                        ? "bg-blue-500"
-                        : color === "teal"
-                        ? "bg-teal-500"
-                        : color === "yellow"
-                        ? "bg-yellow-200"
-                        : color === "light-blue"
-                        ? "bg-blue-100"
-                        : "bg-white"
-                    }`}
+                    className={`w-6 h-6 rounded-full border-[1.5px] border-gray-300 transition
+          ${
+            color === "transparent"
+              ? "bg-transparent"
+              : color === "black"
+              ? "bg-black"
+              : color === "red"
+              ? "bg-red-500"
+              : color === "blue"
+              ? "bg-blue-500"
+              : color === "teal"
+              ? "bg-teal-500"
+              : color === "yellow"
+              ? "bg-yellow-200"
+              : color === "light-blue"
+              ? "bg-blue-100"
+              : "bg-white"
+          }
+          hover:ring-1 hover:ring-black hover:ring-offset-1
+        `}
                   ></div>
                 </button>
               ))}
-            </div> */}
-            <div>
+            </div>
+
+            {/* <div>
               <div className="flex items-center justify-between gap-2 mb-2">
                 <img src={StrokeIcon} className="w-8"></img>
                 <div className="relative w-[57%] h-2 flex items-center rounded-lg gap-2">
@@ -234,7 +238,7 @@ export default function DocumentDetailedContainer({
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Opacity Section */}

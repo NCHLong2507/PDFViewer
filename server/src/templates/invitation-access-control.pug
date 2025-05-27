@@ -1,0 +1,111 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title Bạn được mời truy cập tài liệu
+    style.
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f6f8;
+        margin: 0;
+        padding: 0;
+      }
+
+      .email-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        padding: 32px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease-in-out;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 20px;
+      }
+
+      .header img.logo {
+        width: 180px;
+        height: auto;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: #222222;
+      }
+
+      .content {
+        font-size: 15px;
+        line-height: 1.7;
+        color: #4a4a4a;
+        padding-top: 20px;
+      }
+
+      .content strong {
+        color: #1a1a1a;
+      }
+
+      .button {
+        display: inline-block;
+        margin: 24px auto;
+        padding: 12px 20px;
+        background-color: #007bff;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        transition: background-color 0.25s ease;
+      }
+
+      .button:hover {
+        background-color: #0056b3;
+      }
+
+      code {
+        display: block;
+        background-color: #f1f1f1;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        word-wrap: break-word;
+        margin: 8px 0;
+        color: #555555;
+      }
+      .button-wrapper {
+        text-align:center
+      }
+      p {
+        margin: 10px 0;
+      }
+  body
+    .email-container
+      .header
+        img.logo(
+          src="https://res.cloudinary.com/duiuvuxeu/image/upload/v1747155756/dsv-logo_fqpjxp.png",
+          alt="Designveloper Logo"
+        )
+        h1 LuminPDF Demo
+      .content
+        p Hello,
+        p You’ve been invited to access a document on LuminPDF.
+        p 
+          strong Document name:
+          |  #{documentName}
+        p To access the document, please click the button below to create your account:
+        .button-wrapper
+          a.button(href=signupLink target="_blank") Sign Up & View Document
+        p If the button doesn't work, copy and paste this link into your browser:
+        code #{documentLink}
+        p If you did not expect this invitation, you can safely ignore this email.
+        p Best regards,
+        p The DSV Team

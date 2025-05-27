@@ -3,18 +3,24 @@ import {
   Injectable,
   NotFoundException,
   Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Document, DocumentDocument } from './schema/document.schema';
 import { DocumentPermission } from './schema/document_permission.schema';
+import { Invitation } from './schema/invitation.schema';
 import mongoose from 'mongoose';
 import { DocumentDTO } from './DTO/documentDTO';
 import { plainToInstance } from 'class-transformer';
 import { CollaboratorRole } from './schema/document_permission.schema';
 import { UserService } from 'src/user/user.service';
-import { NotFoundError } from 'rxjs';
 import { DocumentPermissionDTO } from './DTO/document_permissionDTO';
+import { MailService } from 'src/mail/mail.service';
+import { JwtService } from '@nestjs/jwt';
+import { TokenExpiredError } from '@nestjs/jwt';
+import axios from 'axios';
+import cloudinary from 'src/cloudinary.config';
 
 @Injectable()
 export class DocumentService {
@@ -23,7 +29,11 @@ export class DocumentService {
     private documentModel: Model<Document>,
     @InjectModel('DocumentPermission')
     private documentPermisionModel: Model<DocumentPermission>,
+    @InjectModel('DocumentInvitation')
+    private documentInvitationModel: Model<Invitation>,
     private userService: UserService,
+    private jwtService: JwtService,
+    private mailService: MailService,
   ) {}
 
   async getDocumentLazyLoading(
@@ -39,7 +49,7 @@ export class DocumentService {
       .sort({ updatedAt })
       .skip(skip)
       .limit(limit)
-      .populate('owner','name email picture');
+      .populate('owner', 'name email picture');
     const documentDTOs = plainToInstance(DocumentDTO, documents, {
       excludeExtraneousValues: true,
     });
@@ -91,7 +101,6 @@ export class DocumentService {
     _id: string,
     email: string,
   ): Promise<string[]> {
-
     if (!_id || !email) {
       throw new BadRequestException('Missing data');
     }
@@ -100,7 +109,7 @@ export class DocumentService {
 
     const document = await this.documentModel
       .findById(documentID)
-      .populate('owner', 'name email picture')
+      .populate('owner', 'name email picture');
     if (!document) {
       throw new BadRequestException('Document is invalid or being removed');
     }
@@ -134,13 +143,19 @@ export class DocumentService {
     return allowed_actions[role];
   }
 
-  async GetDocumentPermission(_id:string): Promise<DocumentPermissionDTO[]> {
+  async GetDocumentPermission(_id: string): Promise<DocumentPermissionDTO[]> {
     if (!_id) {
       throw new BadRequestException('Missing data');
-    }  
+    }
     const documentID = new mongoose.Types.ObjectId(_id);
-    const collaborator = await this.documentPermisionModel.find({document:documentID}).populate('user','_id name email picture'); 
-    const collaboratorDTO = plainToInstance(DocumentPermissionDTO, collaborator,{excludeExtraneousValues:true});
+    const collaborator = await this.documentPermisionModel
+      .find({ document: documentID })
+      .populate('user', '_id name email picture');
+    const collaboratorDTO = plainToInstance(
+      DocumentPermissionDTO,
+      collaborator,
+      { excludeExtraneousValues: true },
+    );
     return collaboratorDTO;
   }
 
@@ -204,8 +219,7 @@ export class DocumentService {
     }
     const { emailList, role } = data;
     const documentID = new mongoose.Types.ObjectId(_id);
-    const document = await this.documentModel
-      .findById(documentID)
+    const document = await this.documentModel.findById(documentID);
     if (!document) {
       throw new BadRequestException('Document not found');
     }
@@ -214,11 +228,19 @@ export class DocumentService {
     const users = await Promise.all(
       emailList.map((email) => this.userService.findbyEmail(email)),
     );
-    users.forEach((user, index) => {
-      if (!user) {
-        throw new NotFoundException(`User not found: ${data.emailList[index]}`);
-      }
-    });
+
+    const unregisterdEmails = emailList.filter(
+      (_, index) => users[index] === null,
+    );
+    if (unregisterdEmails.length > 0) {
+      await Promise.all(
+        unregisterdEmails.map((email) =>
+          this.handleUnregistedUser(email, document, newRole),
+        ),
+      );
+      return;
+    }
+
     const collaborator = await this.documentPermisionModel.find({
       document: documentID,
     });
@@ -239,6 +261,188 @@ export class DocumentService {
           }),
       ),
     );
+    Promise.all(
+      newCollaborators.map((user) =>
+        this.mailService.sendEmail({
+          subject: `Bạn đã được thêm quyền ${newRole} cho tài liệu "${document.name}"`,
+          template: 'document-access-control-notification',
+          email: user?.email as string,
+          context: {
+            documentName: document.name,
+            documentLink: `http://localhost:5173/document/documentdetailed?id=${_id}`,
+          },
+        }),
+      ),
+    );
     await document.save();
+  }
+
+  async handleUnregistedUser(
+    email: string,
+    document: DocumentDocument,
+    role: CollaboratorRole,
+  ) {
+    const invitation = await this.documentInvitationModel.create({
+      document: document._id,
+      email,
+      role,
+    });
+    const payload = {
+      email,
+      document: document._id.toString(),
+      role: role.toString(),
+      invitation: invitation._id.toString(),
+    };
+    const invitation_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '30m',
+      secret: process.env.JWT_INVITATION_KEY,
+    });
+    this.mailService.sendEmail({
+      subject: `Invitation to access the document "${document.name}" as a ${role}`,
+      template: 'invitation-access-control',
+      email,
+      context: {
+        documentName: document.name,
+        documentLink: `http://localhost:5173/auth/signup?invitation_token=${invitation_token}`,
+      },
+    }); 
+  }
+  async verifyInvitationToken(invitation_token: string): Promise<{
+    status: boolean;
+    message?: string;
+    documentName?: string;
+    documentID?: string;
+    email?: string;
+  }> {
+    try {
+      const payload = await this.jwtService.verifyAsync(invitation_token, {
+        secret: process.env.JWT_INVITATION_KEY,
+      });
+
+      const {
+        email,
+        document: documentId,
+        role,
+        invitation: invitationId,
+      } = payload;
+
+      const invitation =
+        await this.documentInvitationModel.findById(invitationId);
+      if (!invitation || invitation.status !== 'pending') {
+        return {
+          status: false,
+          message: 'Invalid or expired invitation token',
+        };
+      }
+
+      if (invitation.email !== email) {
+        throw new BadRequestException(
+          'You must register with the email in the invitation',
+        );
+      }
+
+      if (invitation.document.toString() !== documentId) {
+        return {
+          status: false,
+          message: 'Invalid document ID in invitation token',
+        };
+      }
+
+      const document = await this.documentModel.findById(documentId);
+      if (!document) {
+        return { status: false, message: 'Document not found' };
+      }
+
+      const user = await this.userService.findbyEmail(email);
+      if (!user) {
+        throw new BadRequestException(
+          'You must login/register with the email in the invitation',
+        );
+      }
+
+      invitation.status = 'accepted';
+      await invitation.save();
+
+      await this.documentPermisionModel.create({
+        document: document._id,
+        user: user._id,
+        role,
+      });
+
+      return {
+        status: true,
+        documentName: document.name,
+        documentID: document._id.toString(),
+        email,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      if (error instanceof TokenExpiredError) {
+        console.error('TokenExpiredError:', error.message);
+        throw new UnauthorizedException('Invitation token has expired.');
+      }
+      throw new UnauthorizedException(error.message);
+    }
+  }
+  async uploadFromDrive(
+    fileData: {
+      fileId: string;
+      fileName: string;
+      mimeType: string;
+      webViewLink: string;
+      access_token: string;
+    },
+    userId: string,
+  ): Promise<DocumentDTO> {
+    try {
+      const response = await axios.get(
+        `https://www.googleapis.com/drive/v3/files/${fileData.fileId}?alt=media&key=${process.env.GOOGLE_API_KEY}`,
+        {
+          headers: {
+            Authorization: `Bearer ${fileData.access_token}`, 
+          },
+          responseType: 'stream',
+        },
+      );
+
+      const uploadResult: { secure_url: string } = await new Promise(
+        (resolve, reject) => {
+          const sanitizedFileName = fileData.fileName.replace(
+            /[^a-zA-Z0-9-_]/g,
+            '-',
+          );
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'Document',
+              resource_type: 'auto',
+              public_id: sanitizedFileName,
+            },
+            (error, result) => {
+              if (error) return reject(new BadRequestException(error.message));
+              if (!result)
+                return reject(
+                  new BadRequestException('Upload failed, result is undefined'),
+                );
+              resolve(result);
+            },
+          );
+          response.data.pipe(stream);
+        },
+      );
+
+      const documentDTO = this.createDocument(
+        fileData.fileName,
+        uploadResult.secure_url,
+        userId,
+      );
+      return documentDTO;
+    } catch (err) {
+      console.log(err);
+      throw new BadRequestException(
+        'Failed to upload file from Google Drive: ' + err.message,
+      );
+    }
   }
 }

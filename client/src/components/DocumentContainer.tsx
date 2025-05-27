@@ -5,12 +5,13 @@ import { RiAlertLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import { FiCheckCircle } from "react-icons/fi";
 import type { Document } from "../interface/document";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, Suspense } from "react";
 import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { QueryObserverResult } from "@tanstack/react-query";
 import { FaRegCircleUser } from "react-icons/fa6";
+import { useTranslation } from "react-i18next";
 interface DocumentContainerProps {
   showAlert: boolean;
   setShowAlert: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,6 +26,9 @@ interface DocumentContainerProps {
   count: number;
   sortOrder: boolean;
   setSortOrder: React.Dispatch<React.SetStateAction<boolean>>;
+  refectInitialDocuments: () => Promise<
+    QueryObserverResult<Document[], unknown>
+  >;
 }
 export default function DocumentContainer({
   showAlert,
@@ -40,8 +44,10 @@ export default function DocumentContainer({
   count,
   sortOrder,
   setSortOrder,
+  refectInitialDocuments,
 }: DocumentContainerProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const documents = documentList.map((doc) => {
     const date = new Date(doc.updatedAt);
     return {
@@ -88,10 +94,10 @@ export default function DocumentContainer({
           <img
             src={EmptyDocument}
             className="w-[192px] h-[192px]"
-            alt="Empty Document"
+            alt={t("Empty Document")}
           />
           <p className="w-full h-[22px] leading-[1.4] text-base text-center text-[rgba(75,85,101,1)]">
-            There is no document founded
+            {t(`There is no document founded`)}
           </p>
           <UploadButton
             setShowSuccess={setShowSuccess}
@@ -101,6 +107,7 @@ export default function DocumentContainer({
             refetchCount={refetchCount}
             sortOrder={sortOrder}
             count={count}
+            refectInitialDocuments={refectInitialDocuments}
           />
         </div>
       ) : (

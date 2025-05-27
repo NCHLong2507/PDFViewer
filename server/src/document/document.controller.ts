@@ -13,7 +13,7 @@ export class DocumentController {
     private readonly documentService: DocumentService
   ){}
 
-  @Post('upload')
+  @Post('uploadfromlocal')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file',{storage,fileFilter: (req,file,cb) => {
     if (!file.originalname.toLowerCase().endsWith('.pdf')) {
@@ -37,6 +37,21 @@ export class DocumentController {
     }
     
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('uploadfromdrive')
+  async uploadFromDrive(@NestRequest() req,@Body() body: { fileId: string; fileName: string; mimeType: string; webViewLink: string, access_token: string }) {
+    try {
+      const documentDTO = await this.documentService.uploadFromDrive(body, req.user._id);
+      return {
+        status: "success",
+        document: documentDTO
+      }
+    } catch (err) {
+      const message = err.message?.toLowerCase() || '';
+      throw err;
+    }
+  } 
 
   @UseGuards(JwtAuthGuard)
   @Get('loaddocument')

@@ -10,7 +10,6 @@ export class AllExceptionsFilter  implements ExceptionFilter {
 
     let status: number;
     let message: string;
-
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const responseBody = exception.getResponse();
@@ -22,7 +21,6 @@ export class AllExceptionsFilter  implements ExceptionFilter {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = ' ';
     }
-
     response
       .status(status)
       .json({

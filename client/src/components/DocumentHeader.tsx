@@ -9,9 +9,9 @@ interface DocumentHeaderProps {
   refetchCount: () => Promise<QueryObserverResult<number, unknown>>;
   sortOrder: boolean,
   count: number,
-
+  refectInitialDocuments: () => Promise<QueryObserverResult<Document[], unknown>>;
 }
-export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertMessage, setDocumentList, count,refetchCount, sortOrder }: DocumentHeaderProps) {
+export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertMessage, setDocumentList, count,refetchCount, sortOrder , refectInitialDocuments}: DocumentHeaderProps) {
   const isEmpty = count == 0;
   return (
     <div className="h-[52px] w-full flex justify-between items-center py-[8px]">
@@ -23,7 +23,7 @@ export default function DocumentHeader({ setShowAlert, setShowSuccess, setAlertM
         </div>
       </div>
       {
-        !isEmpty && (<UploadButton setShowAlert={setShowAlert} setShowSuccess={setShowSuccess} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} refetchCount={refetchCount} sortOrder={sortOrder} count={count} />)
+        !isEmpty && (<UploadButton setShowAlert={setShowAlert} setShowSuccess={setShowSuccess} setAlertMessage={setAlertMessage} setDocumentList={setDocumentList} refetchCount={refetchCount} sortOrder={sortOrder} count={count} refectInitialDocuments={refectInitialDocuments}/>)
       }
     </div>
   )

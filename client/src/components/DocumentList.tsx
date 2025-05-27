@@ -32,12 +32,12 @@ export default function DocumentList() {
     return res.data?.documents || [];
   };
 
-  const { data: initialDocuments = [], isFetched } = useQuery({
+  const { data: initialDocuments = [], isFetched, refetch: refectInitialDocuments} = useQuery({
     queryKey: ["documents"],
     queryFn: fetchDocuments,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    enabled: isFirst,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -87,6 +87,7 @@ export default function DocumentList() {
     refetchCount,
     sortOrder,
     setSortOrder,
+    refectInitialDocuments
   };
   const {
     showAlert: _,

@@ -20,8 +20,9 @@ export default function LoginContainer() {
 
   const loginGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+      console.log(tokenResponse)
       setGoogleLoginError(false);
-      const result = await googleLogin(tokenResponse.access_token);
+      const result = await googleLogin(tokenResponse.access_token,null);
       if (result && result.success) {
         setUserInfor(result.user);
         const redirectPath =
@@ -74,7 +75,10 @@ export default function LoginContainer() {
           localStorage.removeItem("redirectAfterLogin");
           navigate(redirectPath, { replace: true });
         } else {
-          setLoginError("Incorrect email or password");
+          if (result && result.statusCode === 409) {
+            setLoginError(result.message as string);
+          }
+          else setLoginError(result.message as string);
           emailField.setError("");
           passwordField.setError("");
         }

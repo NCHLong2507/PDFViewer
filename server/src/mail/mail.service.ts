@@ -11,7 +11,7 @@ export class MailService {
     subject: string;
     template: string;
     email: string;
-    context: {name: string, verificationLink: string}
+    context: Record<string, any>;
   }) {
     try {
 

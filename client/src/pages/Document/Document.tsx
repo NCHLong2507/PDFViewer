@@ -1,15 +1,15 @@
 import NavBar from "../../components/NavBar";
 import { Outlet } from "react-router-dom";
-import { useAuth } from '../../context/AuthContext';
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import PageNotFound from '../PageNotFound';
-export default function Document () {
+import { useAuth } from "../../context/AuthContext";
+import { Suspense, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import PageNotFound from "../PageNotFound";
+export default function Document() {
   if (location.pathname === "/document") {
     return <PageNotFound />;
   }
 
-  const {checkAuthorization} = useAuth();
+  const { checkAuthorization } = useAuth();
   const navigate = useNavigate();
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,11 +21,11 @@ export default function Document () {
 
     checkAuth();
   }, []);
-  
+
   return (
     <>
-      <NavBar/>
-      <Outlet/>
+      <NavBar />
+      <Outlet />
     </>
-  )
+  );
 }

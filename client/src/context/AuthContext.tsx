@@ -19,7 +19,7 @@ interface AuthContextType {
     user?: User;
     error?: string;
   } | void>;
-  signup: (data: { name: string; email: string; password: string }) => Promise<{
+  signup: (data: { name: string; email: string; password: string }, invitation_token: string | null) => Promise<{
     success: boolean;
     user_id?: string;
     message?: string;
@@ -27,9 +27,10 @@ interface AuthContextType {
   }>;
   isAuthenticated: boolean;
   checkAuthorization: () => Promise<boolean>;
-  googleLogin: (token: string) => Promise<{
+  googleLogin: (token: string, invitation_token: string|null) => Promise<{
     success: boolean;
     user?: User;
+    directURL?: string;
     message?: string;
     statusCode?: number;
   }>;
@@ -75,14 +76,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(error);
     }
   };
-  const googleLogin = async (token: string) => {
+  const googleLogin = async (token: string, invitation_token: string|null = null) => {
     try {
-      const result = await api.get("/auth/google/authentication", {
+      const link = invitation_token? `/auth/google/authentication?invitation_token=${invitation_token}` : `/auth/google/authentication`;
+      const result = await api.get(link, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const { user } = result.data;
+      const { user,directURL } = result.data;
       if (!user) {
         console.error("Missing token or user_data in response:", result.data);
         throw new Error("Invalid response data");
@@ -90,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return {
         success: true,
         user: user,
+        directURL
       };
     } catch (err) {
       const error = err as any;
@@ -104,10 +107,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string;
     email: string;
     password: string;
-  }) => {
+  }, invitation_token: string | null = null) => {
     try {
       const { name, email, password } = data;
-      const result = await api.post("/auth/signup", {
+      const link = invitation_token? `/auth/signup?invitation_token=${invitation_token}` : `/auth/signup`;
+      const result = await api.post(link, {
         name,
         email,
         password,
@@ -118,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         success: true,
       };
     } catch (err) {
+      console.log(err)
       const error = err as any;
       return {
         success: false,

@@ -2,7 +2,7 @@ import { Expose, Transform, Type } from 'class-transformer';
 
 export class DocumentDTO {
   @Expose()
-  @Transform(({ obj }) => obj._id.toString()) 
+  @Transform(({ obj }) => obj?._id.toString())  
   _id: string;
 
   @Expose()

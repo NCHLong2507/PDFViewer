@@ -2,18 +2,29 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FaRegCircleUser } from "react-icons/fa6";
+import { useTranslation } from "react-i18next";
 
 export default function NavBarTool() {
   const { userInfor, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [greeting, setGreeting] = useState("Hello,");
   const wrapperRef = useRef<HTMLDivElement>(null);
-
+  const { t } = useTranslation();
   const handleLogout = async () => {
     await logout();
     navigate("/auth/login");
   };
-
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      setGreeting(t("Good morning,"));
+    } else if (hour >= 12 && hour < 18) {
+      setGreeting(t("Good afternoon,"));
+    } else {
+      setGreeting(t("Good evening,"));
+    }
+  }, [t]);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -36,7 +47,7 @@ export default function NavBarTool() {
           <div className="w-full h-auto pr-[24px] gap-[16px] flex justify-end items-center">
             <div className="h-full min-w-[280px] flex justify-end items-center gap-[16px]">
               <div className="leading-[1.4] text-base text-[rgba(30, 30, 30, 1)]">
-                {`Good morning, ${userInfor.name}`}
+                {`${greeting} ${userInfor.name}`}
               </div>
               <div className="w-[1px] h-[40px] bg-[rgba(227,232,239,1)]"></div>
 

@@ -16,6 +16,7 @@ interface CollaboratorDTO {
     _id: string;
     name: string;
     email: string;
+    picture: string;
   };
   role: string;
 }
@@ -34,6 +35,7 @@ export default function ShareModal({
   const [matchedUser, setMatchedUser] = useState<{
     name: string;
     email: string;
+    picture: string;
   } | null>(null);
   const [userAddedList, setUserAddedList] = useState<string[]>([]);
   const [roleAdded, setRoleAdded] = useState("Viewer");
@@ -41,18 +43,20 @@ export default function ShareModal({
 
   useEffect(() => {
     const fetchDocumentPermission = async () => {
-      try{
-        const result = await api.get(`/document/documentpermission?id=${document._id}`);
-        if (result && result.data.status==="success") {
-          console.log(result.data.permission)
+      try {
+        const result = await api.get(
+          `/document/documentpermission?id=${document._id}`
+        );
+        if (result && result.data.status === "success") {
+          console.log(result.data.permission);
           setCollaborator(result.data.permission);
         }
-      } catch (err:any) {
+      } catch (err: any) {
         console.log(err.config);
       }
     };
     fetchDocumentPermission();
-  },[]);
+  }, []);
   const [modified, setModified] = useState<CollaboratorDTO[]>([]);
 
   useEffect(() => {
@@ -66,7 +70,7 @@ export default function ShareModal({
             const result = await api.post("/user/find-by-email", {
               email: input,
             });
-            setMatchedUser(result.data.user || null);
+            setMatchedUser(result.data.user || {name: "Unregistered User", email: input, picture: ""});
           } catch (err: any) {
             console.log(err);
           }
@@ -79,7 +83,11 @@ export default function ShareModal({
   }, [emailInput]);
 
   const AddtoUserList = () => {
-    if (matchedUser && !userAddedList.includes(matchedUser.email)) {
+    if (
+      matchedUser &&
+      !userAddedList.includes(matchedUser.email) &&
+      matchedUser.email !== document.owner.email
+    ) {
       const alreadyExists = collaborator.some(
         (c) => c.user.email === matchedUser.email
       );
@@ -116,7 +124,6 @@ export default function ShareModal({
         return [...withoutOld, changedUser];
       });
     }
-    
   };
 
   const handleSaveAccess = async () => {
@@ -176,7 +183,15 @@ export default function ShareModal({
           {!emailInput.trim() && userAddedList.length == 0 ? (
             <div className="w-full h-[180px] flex flex-col items-center gap-3 overflow-y-auto">
               <div className="w-full flex items-center gap-3">
-                <PiUserCircleThin className="w-10 h-10 rounded-full" />
+                {document.owner.picture ? (
+                  <img
+                    src={document.owner.picture}
+                    className="w-10 h-10 rounded-full"
+                    alt="avatar"
+                  />
+                ) : (
+                  <PiUserCircleThin className="w-10 h-10" />
+                )}
                 <div>
                   <p className="text-sm text-gray-900 font-medium">
                     {document.owner.name}
@@ -191,7 +206,15 @@ export default function ShareModal({
               </div>
               {collaborator.map((user, id) => (
                 <div key={id} className="w-full flex items-center gap-3">
-                  <PiUserCircleThin className="w-10 h-10 rounded-full" />
+                  {user.user.picture ? (
+                <img
+                  src={user.user.picture}
+                  className="w-10 h-10 rounded-full"
+                  alt="avatar"
+                />
+              ) : (
+                <PiUserCircleThin className="w-10 h-10" />
+              )}
                   <div>
                     <p className="text-sm text-gray-900 font-medium">
                       {user.user.name}
@@ -216,9 +239,17 @@ export default function ShareModal({
               onClick={AddtoUserList}
               className="flex items-center gap-3 border border-gray-200 rounded-lg p-2 shadow-sm hover:bg-gray-100"
             >
-              <PiUserCircleThin className="w-10 h-10 rounded-full" />
+              {matchedUser.picture ? (
+                <img
+                  src={matchedUser.picture}
+                  className="w-10 h-10 rounded-full"
+                  alt="avatar"
+                />
+              ) : (
+                <PiUserCircleThin className="w-10 h-10" />
+              )}
               <div>
-                <p className="text-sm text-gray-900 font-medium">
+                <p className={`text-sm ${matchedUser.name === 'Unregistered User'?`text-red-700`:`text-gray-900`} font-medium`}>
                   {matchedUser.name}
                 </p>
                 <p className="text-sm text-gray-500">{matchedUser.email}</p>

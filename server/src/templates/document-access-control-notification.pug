@@ -1,0 +1,74 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title Bạn đã được thêm vào tài liệu
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .header img.logo {
+        width: 200px;  
+        height: 48px;  
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 25px;
+        font-weight: bold;
+        color: #2c2c2c;
+      }
+      .content {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #333333;
+        padding-top: 16px;
+      }
+      .button {
+        display: block;        /* biến thành khối để margin auto hoạt động */
+        margin: 20px auto 20px;   /* 20px trên, auto 2 bên, 0 dưới */
+        padding: 10px 16px;
+        background-color: #007bff;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 4px;
+        text-align: center; 
+        width: 150px
+      }
+  body
+    .email-container
+      .header
+        img.logo(
+          src="https://res.cloudinary.com/duiuvuxeu/image/upload/v1747155756/dsv-logo_fqpjxp.png"
+          alt="Designveloper Logo"
+        ) 
+        h1 LuminPDF Demo
+      .content
+        p Hello,
+        p You have been granted access to the following document:
+        p 
+          strong Document name:
+          |  #{documentName}
+        a.button(href=documentLink target="_blank") View Document
+        p If the button above doesn’t work, please copy and paste the link below into your browser:
+        p 
+          code #{documentLink}
+        p Best regards,
+        p The DSV Team

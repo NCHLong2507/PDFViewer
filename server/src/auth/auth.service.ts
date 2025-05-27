@@ -15,6 +15,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as brypt from 'bcrypt';
 import { MailService } from 'src/mail/mail.service';
+import { ppid } from 'process';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +42,7 @@ export class AuthService {
       _id: user._id,
       name: user.name,
       email: user.email,
-      picture: user.picture
+      picture: user.picture,
     };
     const access_token = await this.jwtService.signAsync(payload, {
       expiresIn,
@@ -59,14 +60,42 @@ export class AuthService {
     });
   }
 
-  async signup(user: RegisterDTO): Promise<string> {
+  async signup(
+    user: RegisterDTO,
+    invitation_token: string | null = null,
+  ): Promise<string> {
     const { name, email, password } = user;
-
-    const existingUser = await this.userService.findbyEmail(email);
-    if (existingUser !== null) {
-      throw new ConflictException('User already exists');
+    if (invitation_token) {
+      try {
+        const payload = await this.jwtService.verifyAsync(invitation_token, {
+        secret: process.env.JWT_INVITATION_KEY,
+      });
+      if (payload && payload.email !== email) {
+        throw new BadRequestException(
+          `You must use the email address ${payload.email} you used to sign up with invitation token.`,
+        );
+      }
+      } catch (error) {
+        throw new BadRequestException(
+          'Invalid or expired invitation token.',
+        );
+      }
     }
-    const newUser = await this.userService.createUser(name, email, password);
+    const existingUser = await this.userService.findbyEmail(email);
+    if (existingUser && existingUser.subject) {
+      throw new ConflictException(
+        'This email address is currently being used with Google account. Please sign in with Google.',
+      );
+    }
+    if (existingUser !== null) {
+      throw new ConflictException('Existing email');
+    }
+    const newUser = await this.userService.createUser(
+      name,
+      email,
+      password,
+      invitation_token,
+    );
     const userDTO = plainToInstance(UserDTO, newUser.toObject(), {
       excludeExtraneousValues: true,
     });
@@ -75,6 +104,7 @@ export class AuthService {
 
   async resendEmail(_id: string) {
     const user = await this.userService.findById(_id, false);
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -84,13 +114,17 @@ export class AuthService {
     if (!user.email) {
       throw new BadRequestException('User email not found');
     }
+    const invitation_token = user.invitation_token;
+    const verificationLink = invitation_token
+      ? `http://localhost:3000/auth/verifyUser?user_id=${user?._id}&invitation_token=${invitation_token}`
+      : `http://localhost:3000/auth/verifyUser?user_id=${user?._id}`;
     const mailoptions = {
       subject: 'Verification email',
       template: 'signup-confirmation-email',
       email: user.email,
       context: {
         name: user?.name,
-        verificationLink: `http://localhost:3000/auth/verifyUser?user_id=${user?._id}`,
+        verificationLink,
       },
     };
     this.mailService.sendEmail(mailoptions);
@@ -111,6 +145,11 @@ export class AuthService {
     const { email, password } = body;
     const foundUser = await this.userService.findbyEmail(email);
     if (foundUser) {
+      if (foundUser.subject) {
+        throw new ConflictException(
+          'This email address is currently being used with Google account. Please sign in with Google.',
+        );
+      }
       const isPasswordValid = await this.comparePassword(
         password,
         foundUser.password,
@@ -126,8 +165,55 @@ export class AuthService {
     }
     throw new NotFoundException('User not found!');
   }
+  private async validateGoogleToken(access_token: string): Promise<any> {
+    const response = await fetch(
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`,
+    );
 
-  async GoogleSignup(access_token: string): Promise<UserDTO> {
+    if (!response.ok) {
+      throw new BadRequestException(
+        `HTTP error! status: ${response.status} - ${response.statusText}`,
+      );
+    }
+
+    const tokeninfo = await response.json();
+    if (tokeninfo.aud !== process.env.GOOGLE_CLIENT_ID) {
+      throw new UnauthorizedException('Unauthorized: Invalid token audience.');
+    }
+
+    const currentTimeInSeconds = Date.now() / 1000;
+    if (tokeninfo.exp < currentTimeInSeconds) {
+      throw new UnauthorizedException(
+        'Unauthorized: Access token has expired.',
+      );
+    }
+
+    return tokeninfo;
+  }
+
+  private async getGoogleUserInfo(access_token: string): Promise<any> {
+    const userinfoResponse = await fetch(
+      `https://www.googleapis.com/oauth2/v3/userinfo`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      },
+    );
+
+    if (!userinfoResponse.ok) {
+      throw new BadRequestException(
+        `HTTP error fetching user info! Status: ${userinfoResponse.status} - ${userinfoResponse.statusText}`,
+      );
+    }
+
+    return userinfoResponse.json();
+  }
+  async GoogleSignup(
+    access_token: string,
+    emailChecked: string | null = null,
+  ): Promise<UserDTO> {
     const response = await fetch(
       `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`,
     );
@@ -162,9 +248,16 @@ export class AuthService {
     }
     const user = await userinfoResponse.json();
     const { name, email, sub, picture } = user;
-    const existingUser = await this.userService.findbyEmail(email);
+    if (emailChecked && emailChecked !== email) {
+      throw new BadRequestException(
+        `You must use the email address ${emailChecked} you used to sign up with Google.`,
+      );
+    }
+    const existingUser = await this.userService.findbyEmail(email, false);
     if (existingUser) {
-      throw new ConflictException('This email address is currently being used with email & password.Please sign in with email & password.')
+      throw new ConflictException(
+        'This email address is currently being used with email & password.Please sign in with email & password.',
+      );
     }
     const newUser = await this.userService.createGoogleAccount(
       name,
@@ -177,7 +270,10 @@ export class AuthService {
     });
     return userDTO;
   }
-  async GoogleLogin(access_token: string): Promise<UserDTO | null> {
+  async GoogleLogin(
+    access_token: string,
+    emailChecked: string | null = null,
+  ): Promise<UserDTO | null> {
     if (!access_token) {
       throw new BadRequestException('Access token is required.');
     }
@@ -214,10 +310,18 @@ export class AuthService {
       );
     }
     const user = await userinfoResponse.json();
+
+    if (emailChecked && emailChecked !== user.email) {
+      throw new BadRequestException(
+        `You must use the email address ${emailChecked} you used to sign up with Google.`,
+      );
+    }
     const subject = user.sub;
-    const existingUser = await this.userService.findBySubject(subject); 
+    const existingUser = await this.userService.findBySubject(subject);
     if (existingUser) {
-      const userDTO = plainToInstance(UserDTO,existingUser,{excludeExtraneousValues:true});
+      const userDTO = plainToInstance(UserDTO, existingUser, {
+        excludeExtraneousValues: true,
+      });
       return userDTO;
     }
     return null;

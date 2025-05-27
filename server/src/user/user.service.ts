@@ -1,24 +1,41 @@
-import { BadRequestException, ConflictException, HttpStatus, Injectable, NotFoundException} from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from '../user/user.schema';
-import {Model,Types} from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { UserDocument } from '../user/user.schema';
 @Injectable()
 export class UserService {
-  constructor (
+  constructor(
     @InjectModel('User')
-    private userModel: Model<User>
+    private userModel: Model<User>,
   ) {}
 
-  async findbyEmail(email: string, isVerify:boolean = true): Promise<UserDocument | null> {
+  async findbyEmail(
+    email: string,
+    isVerify: boolean = true,
+  ): Promise<UserDocument | null> {
     if (!email) {
       throw new BadRequestException('Email is required');
     }
-    const user = await this.userModel.findOne({ email, isVerify });
+
+    let query: { email: string; isVerify?: boolean } = { email };
+    if (isVerify === true) {
+      query.isVerify = true;
+    }
+    const user = await this.userModel.findOne(query);
     return user;
   }
-  async findById(_id: string, isVerify: boolean = true): Promise<UserDocument | null> {
+  async findById(
+    _id: string,
+    isVerify: boolean = true,
+  ): Promise<UserDocument | null> {
     if (!_id) {
       throw new BadRequestException('ID is required');
     }
@@ -28,11 +45,17 @@ export class UserService {
     const user = await this.userModel.findOne({ _id: objectId, isVerify });
     return user;
   }
-  async findBySubject(subject: string, isVerify:boolean =true): Promise<UserDocument | null> {
+  async findBySubject(
+    subject: string,
+    isVerify: boolean = true,
+  ): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({ subject, isVerify });
     return user;
   }
-  async updateUser(id: string, updates: Partial<UserDocument>): Promise<UserDocument> {
+  async updateUser(
+    id: string,
+    updates: Partial<UserDocument>,
+  ): Promise<UserDocument> {
     if (!id) {
       throw new BadRequestException('User ID is required');
     }
@@ -42,8 +65,8 @@ export class UserService {
     }
 
     const updatedUser = await this.userModel.findByIdAndUpdate(id, updates, {
-      new: true,             
-      runValidators: true,   
+      new: true,
+      runValidators: true,
     });
     if (!updatedUser) {
       throw new NotFoundException('User not found');
@@ -52,7 +75,12 @@ export class UserService {
     return updatedUser;
   }
 
-  async createUser(name: string, email: string, password: string): Promise<UserDocument> {
+  async createUser(
+    name: string,
+    email: string,
+    password: string,
+    invitation_token: null | string = null,
+  ): Promise<UserDocument> {
     if (!name || !email || !password) {
       throw new BadRequestException('Name, email and password are required');
     }
@@ -60,16 +88,35 @@ export class UserService {
     if (existingUser) {
       throw new ConflictException('User already exists');
     }
-    password = await bcrypt.hash(password,12);
-    const newUser = await this.userModel.create({ name, email, password });
+    password = await bcrypt.hash(password, 12);
+    const userData: any = {
+      name,
+      email,
+      password,
+    };
+    if (invitation_token) {
+      userData.invitation_token = invitation_token;
+    }
+    const newUser = await this.userModel.create(userData);
     return newUser;
   }
 
-  async createGoogleAccount(name: string, email: string, subject:string, picture: string): Promise<UserDocument> {
+  async createGoogleAccount(
+    name: string,
+    email: string,
+    subject: string,
+    picture: string,
+  ): Promise<UserDocument> {
     if (!name || !email || !subject) {
       throw new BadRequestException('Name,email, subject are required');
     }
-    const newUser = await this.userModel.create({name,email,subject,picture,isVerify:true});
+    const newUser = await this.userModel.create({
+      name,
+      email,
+      subject,
+      picture,
+      isVerify: true,
+    });
     return newUser;
   }
 }
