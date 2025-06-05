@@ -1,16 +1,21 @@
 import axios from "axios";
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  withCredentials: true
+  baseURL: "http://localhost:3000",
+  withCredentials: true,
 });
 
 let isRefreshing = false;
 
 api.interceptors.response.use(
-  res => res,
-  async err => {
+  (res) => res,
+  async (err) => {
     const originalRequest = err.config;
-    const skipRefreshRoutes = ['/auth/login', '/auth/signup', '/auth/refresh', '/auth/authorize'];
+    const skipRefreshRoutes = [
+      "/auth/login",
+      "/auth/signup",
+      "/auth/refresh",
+      "/auth/authorize",
+    ];
 
     if (
       err.response?.status === 401 &&
@@ -26,17 +31,20 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.get('/auth/refresh'); 
-        console.log(originalRequest)
-        return api(originalRequest); 
-      } catch  {
-        await api.post('/auth/logout');
-        window.localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
-        window.location.href="http://localhost:5173/auth/login";
+        await api.get("/auth/refresh");
+        console.log(originalRequest);
+        return api(originalRequest);
+      } catch {
+        await api.post("/auth/logout");
+        window.localStorage.setItem(
+          "redirectAfterLogin",
+          window.location.pathname + window.location.search
+        );
+        window.location.href = "http://localhost:5173/auth/login";
       } finally {
         isRefreshing = false;
       }
-    }
+    } 
     return Promise.reject(err);
   }
 );

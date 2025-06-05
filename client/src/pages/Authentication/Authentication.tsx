@@ -1,11 +1,13 @@
 import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Logomark from "../../components/Logomark";
+import Logomark from "../../components/Authentication/Logomark";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageNotFound from "../PageNotFound";
 import { Toaster } from "react-hot-toast";
-
+export const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
 export default function Authentication() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 

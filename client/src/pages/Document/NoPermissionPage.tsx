@@ -1,8 +1,10 @@
 import EmptyNetwork from '../../assets/empty_network.png';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 export default function NoPermissionPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const {userInfor} = useAuth();
   return(
     <div>
@@ -11,13 +13,13 @@ export default function NoPermissionPage() {
           <img src={EmptyNetwork} className="w-[270px] h-[270px]"></img>
           <div className='flex flex-col gap-3'>
             <div className='flex items-center justify-start'>
-              <p className='font-[700] leading-[1.2] text-5xl'>Oops,</p>
+              <p className='font-[700] leading-[1.2] text-5xl'>{t("Oops,")}</p>
             </div>
-            <p className='leading-[1.2] text-3xl'>You don't have permisson to access this file</p>
-            <p>You are signed in as <span className='inline font-bold'>{userInfor?.email}</span></p>
+            <p className='leading-[1.2] text-3xl'>{t("You don't have permisson to access this file")}</p>
+            <p>{t("You are signed in as")} <span className='inline font-bold'>{userInfor?.email}</span></p>
 
             <button onClick={()=>navigate('/document/documentlist') } className="w-[190px] h-[40px] rounded-[8px] border-[1px] font-[600] text-center items-center p-[8px] bg-gray-300 hover:bg-gray-400 mt-10">
-             Back to my Document
+             {t("Back to my Document")}
             </button>
           </div>
           

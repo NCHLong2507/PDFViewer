@@ -7,6 +7,7 @@ import { MailModule } from '../mail/mail.module';
 import { DocumentModule } from 'src/document/document.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AnnotationModule } from 'src/annotation/annotation.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -19,7 +20,8 @@ import { join } from 'path';
     AuthModule, 
     MailModule,
     DocumentModule,
-    AppModule
+    AppModule,
+    AnnotationModule
   ],
   controllers: [],
   providers: []

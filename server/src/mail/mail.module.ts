@@ -11,7 +11,7 @@ import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
           service: 'Gmail',
           secure: false,
           auth: {
-            user: 'long.nguyendt04@hcmut.edu.vn',
+            user: process.env.EMAIL_HOST,
             pass: process.env.EMAIL_PASSWORD,
           },
           tls: {
@@ -19,7 +19,7 @@ import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
           },
         },
         defaults: {
-          from: '"Node Reply" long.nguyendt04@hcmut.edu.vn',
+          from: `"Node Reply" ${process.env.EMAIL_HOST} `,
         },
         template: {
           dir: __dirname + '/../../src/templates',

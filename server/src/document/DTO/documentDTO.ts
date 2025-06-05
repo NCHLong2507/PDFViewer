@@ -25,4 +25,7 @@ export class DocumentDTO {
 
   @Expose()
   updatedAt: string;
+
+  @Expose()
+  isLoadingFirst: boolean
 }

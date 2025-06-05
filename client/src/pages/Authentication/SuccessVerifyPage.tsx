@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Logo from "../../assets/DSV.logo.png";
 import SuccessVerify from "../../assets/verify-success.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function VerifyEmail() {
   const [showPopup, setShowPopup] = useState(false);
@@ -10,6 +11,7 @@ export default function VerifyEmail() {
   const [documentID, setDocumentID] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   useEffect(() => {
     localStorage.removeItem("email");
@@ -58,16 +60,16 @@ export default function VerifyEmail() {
             className="w-[192px] h-[192px]"
           />
           <p className="w-[398px] h-[38px] text-center leading-[1.2] text-[rgba(30,30,30,1)] text-[32px] font-bold">
-            Well Done!!
+            {t("Well Done!!")}
           </p>
           <p className="text-[18px] leading-[1.4] font-[400]">
-            You have verified your email successfully
+            {t("verifyEmailSuccess")}
           </p>
           <button
             onClick={() => navigate("/document/documentlist")}
             className="w-[316px] h-[38px] rounded-[8px] border-[1px] font-[600] text-center items-center p-[6px] hover:bg-[#e6b800] bg-[rgba(245,199,49,1)]"
           >
-            Go to my Documents
+            {t("Go to my Documents")}
           </button>
         </div>
       </div>
@@ -86,27 +88,27 @@ export default function VerifyEmail() {
             {!invalidInvitation ? (
               <div className="p-8">
                 <h2 className="text-3xl font-extrabold mb-6 text-blue-800 tracking-tight text-center">
-                  You're Invited to the Document
+                  {t("You're Invited to the Document")}
                 </h2>
 
                 <div className="text-center text-xl font-medium text-blue-900 bg-blue-50 p-4 rounded-lg shadow-sm hover:bg-blue-100 transition-colors duration-300 break-words cursor-pointer select-all">
-                  {documentName || "No document name"}
+                  {documentName || t("No document name")}
                 </div>
 
                 <button
                   onClick={handleMove}
                   className="mt-8 w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition-all duration-300 ease-in-out"
                 >
-                  Move to Document
+                  {t("Move to Document")}
                 </button>
               </div>
             ) : (
               <div className="p-8 text-center">
                 <h2 className="text-3xl font-bold mb-4 text-red-600 tracking-wide">
-                  Invalid Invitation
+                  {t("Invalid Invitation")}
                 </h2>
                 <p className="text-gray-700 text-lg">
-                  The invitation is invalid or has expired.
+                  {t("invalidinvitation")}
                 </p>
               </div>
             )}

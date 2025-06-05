@@ -4,5 +4,6 @@ export interface Document {
     name: string,
     fileUrl: string,
     updatedAt: string,
+    isLoadingFirst: boolean
 }
 

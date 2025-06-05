@@ -27,7 +27,7 @@ import { JwtModule } from '@nestjs/jwt';
     ]),
     UserModule,
     JwtModule, 
-    MailModule
+    MailModule,
   ],
   controllers: [DocumentController],
   providers: [DocumentService],

@@ -14,6 +14,9 @@ export class Document {
 
   @Prop({required:true})
   name:string
+
+  @Prop({default: false})
+  isLoadingFirst: boolean
 }
 
 export const DocumentSchema = SchemaFactory.createForClass(Document);

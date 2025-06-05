@@ -20,7 +20,7 @@ import { MailService } from 'src/mail/mail.service';
 import { JwtService } from '@nestjs/jwt';
 import { TokenExpiredError } from '@nestjs/jwt';
 import axios from 'axios';
-import cloudinary from 'src/cloudinary.config';
+import cloudinary from 'src/cloudinary/cloudinary.config';
 
 @Injectable()
 export class DocumentService {
@@ -96,7 +96,18 @@ export class DocumentService {
     });
     return retdocument;
   }
-
+  async setDocumentLoadingFirst(_id: string): Promise<void> {
+    if (!_id) {
+      throw new BadRequestException('Missing id');
+    }
+    const documentID = new mongoose.Types.ObjectId(_id);
+    const document = await this.documentModel.findById(documentID);
+    if (!document) {
+      throw new NotFoundException('Document not found');
+    }
+    document.isLoadingFirst = true;
+    await document.save();
+  }
   async getDocumentPermissionPerUser(
     _id: string,
     email: string,
@@ -170,6 +181,7 @@ export class DocumentService {
     const document = await this.documentModel
       .findById(documentID)
       .populate('owner', 'email');
+    console.log('Document:', document);
     if (!document) {
       throw new BadRequestException('Document not found');
     }
@@ -208,6 +220,8 @@ export class DocumentService {
         );
       }
     }
+    (document as any).updatedAt = new Date();
+    await document.save();
   }
 
   async AddDocumentAccessControl(
@@ -233,34 +247,34 @@ export class DocumentService {
       (_, index) => users[index] === null,
     );
     if (unregisterdEmails.length > 0) {
-      await Promise.all(
+      Promise.all(
         unregisterdEmails.map((email) =>
           this.handleUnregistedUser(email, document, newRole),
         ),
       );
-      return;
     }
 
-    const collaborator = await this.documentPermisionModel.find({
-      document: documentID,
-    });
+    const collaborators = await this.documentPermisionModel
+      .find({ document: documentID })
+      .select('user');
     const existingUserIds = new Set(
-      (collaborator ?? []).map((c) => c.user.toString()),
+      collaborators.map((c) => c.user.toString()),
     );
     const newCollaborators = users.filter(
       (user) => user && !existingUserIds.has(user._id.toString()),
     );
-    await Promise.all(
-      newCollaborators.filter(Boolean).map(
-        (user) =>
-          user &&
-          this.documentPermisionModel.create({
+    if (newCollaborators.length > 0) {
+      const bulkOps = newCollaborators.map((user) => ({
+        insertOne: {
+          document: {
             document: documentID,
-            user: new mongoose.Types.ObjectId(user._id),
+            user: new mongoose.Types.ObjectId(user?._id),
             role: newRole,
-          }),
-      ),
-    );
+          },
+        },
+      }));
+      await this.documentPermisionModel.bulkWrite(bulkOps);
+    }
     Promise.all(
       newCollaborators.map((user) =>
         this.mailService.sendEmail({
@@ -274,6 +288,7 @@ export class DocumentService {
         }),
       ),
     );
+    (document as any).updatedAt = new Date();
     await document.save();
   }
 
@@ -299,13 +314,13 @@ export class DocumentService {
     });
     this.mailService.sendEmail({
       subject: `Invitation to access the document "${document.name}" as a ${role}`,
-      template: 'invitation-access-control',
+      template: 'document-access-control-invitation',
       email,
       context: {
         documentName: document.name,
         documentLink: `http://localhost:5173/auth/signup?invitation_token=${invitation_token}`,
       },
-    }); 
+    });
   }
   async verifyInvitationToken(invitation_token: string): Promise<{
     status: boolean;
@@ -368,7 +383,6 @@ export class DocumentService {
         user: user._id,
         role,
       });
-
       return {
         status: true,
         documentName: document.name,
@@ -401,7 +415,7 @@ export class DocumentService {
         `https://www.googleapis.com/drive/v3/files/${fileData.fileId}?alt=media&key=${process.env.GOOGLE_API_KEY}`,
         {
           headers: {
-            Authorization: `Bearer ${fileData.access_token}`, 
+            Authorization: `Bearer ${fileData.access_token}`,
           },
           responseType: 'stream',
         },
