@@ -56,8 +56,8 @@ pdfviewer/
 ### 1. 📥 Clone repository
 
 ```bash
-git clone https://github.com/yourusername/pdfviewer.git
-cd pdfviewer
+git clone https://github.com/NCHLong2507/PDFViewer.git
+cd PDFViewer
 ```
 
 ### 2. ⚙️ Environment Variables
