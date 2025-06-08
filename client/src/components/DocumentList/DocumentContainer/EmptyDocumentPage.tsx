@@ -17,10 +17,10 @@ export default function EmptyDocumentPage({refetchCount, count, refectInitialDoc
       <img
         src={EmptyDocument}
         className="w-[192px] h-[192px]"
-        alt={t("Empty Document")}
+        alt={t("docList.emptyDocument")}
       />
       <p className="w-full h-[22px] leading-[1.4] text-base text-center text-[rgba(75,85,101,1)]">
-        {t("There is no document founded")}
+        {t("docList.emptyCommnent")}
       </p>
       <UploadButton
         refetchCount={refetchCount}

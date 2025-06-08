@@ -1,25 +1,51 @@
 import { IoIosArrowDown } from "react-icons/io";
 import { RiRectangleLine } from "react-icons/ri";
-import { setIsTextModified, setTextColor, setTextFillBorder, setTextFillColor, setTextFillOpacity, setTextFont, setTextSize } from "../../../store/textAnnotationSlice";
 import type { AppDispatch, RootState } from "../../../store/store";
 import { useDispatch, useSelector } from "react-redux";
 import type { WebViewerInstance } from "@pdftron/webviewer";
-import { toggleShowShapeCustomTable, toggleShowTextCustomTable } from "../../../store/documentViewerSlice";
-import { setIsShapeModified, setOpacity, setSelectedColor, setSelectedShape, setStroke, setStyle } from "../../../store/shapeAnnotationSlice";
+import {
+  toggleShowShapeCustomTable,
+  toggleShowTextCustomTable,
+} from "../../../store/documentDetailSlice/documentDetailSlice";
+import {
+  setIsShapeModified,
+  setStyle,
+  resetShapeStyle,
+} from "../../../store/documentDetailSlice/shapeAnnotationSlice";
+import { useTranslation } from "react-i18next";
+import {
+  resetTextAnnotation,
+  setFrameStyle,
+  setIsTextModified,
+} from "../../../store/documentDetailSlice/textAnnotationSlice";
 
 interface AnnotationButtonProps {
   instanceRef: React.RefObject<WebViewerInstance>;
   getToolNameFromShape: (shape: string) => string;
   action: string[] | undefined;
 }
-
-export default function AnnotationButton({instanceRef,getToolNameFromShape,action}: AnnotationButtonProps) {
+export default function AnnotationButton({
+  instanceRef,
+  getToolNameFromShape,
+  action,
+}: AnnotationButtonProps) {
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
-  const showShapeCustomTable = useSelector((state: RootState) => state.editor.showShapeCustomTable);
-  const showTextCustomTable = useSelector((state: RootState) => state.editor.showTextCustomTable);
-  const isTextModified = useSelector((state: RootState) => state.text.isTextModified);
-  const isShapeModified = useSelector((state: RootState) => state.shape.isShapeModified);
-  const selectedShape = useSelector((state: RootState) => state.shape.selectedShape);
+  const showShapeCustomTable = useSelector(
+    (state: RootState) => state.editor.showShapeCustomTable
+  );
+  const showTextCustomTable = useSelector(
+    (state: RootState) => state.editor.showTextCustomTable
+  );
+  const isTextModified = useSelector(
+    (state: RootState) => state.text.isTextModified
+  );
+  const isShapeModified = useSelector(
+    (state: RootState) => state.shape.isShapeModified
+  );
+  const shapeAnnotation = useSelector(
+    (state: RootState) => state.shape.shapeAnnotation
+  );
   const handleTextAnnotation = () => {
     if (showShapeCustomTable) return;
     const instance = instanceRef.current;
@@ -28,20 +54,16 @@ export default function AnnotationButton({instanceRef,getToolNameFromShape,actio
       annotationManager?.deselectAllAnnotations();
       return;
     }
+    dispatch(resetTextAnnotation());
+    dispatch(setFrameStyle("fill"));
     dispatch(setIsTextModified(false));
-    dispatch(setTextColor("black"));
-    dispatch(setTextFont("Inter"));
-    dispatch(setTextSize("12pt"));
-    dispatch(setTextFillBorder(0));
-    dispatch(setTextFillOpacity(100));
-    dispatch(setTextFillColor("white"));
 
     const texttable = window.document.getElementById("DocumentTextTool");
     if (texttable) {
       texttable.style.left = "";
       texttable.style.top = "";
       texttable.style.right = "88px";
-      texttable.style.bottom = "180px";
+      texttable.style.bottom = "100px";
     }
     setTimeout(() => {
       if (!isTextModified && showTextCustomTable) {
@@ -63,29 +85,26 @@ export default function AnnotationButton({instanceRef,getToolNameFromShape,actio
 
     dispatch(setIsShapeModified(false));
     dispatch(setStyle("fill"));
-    dispatch(setSelectedColor("black"));
-    dispatch(setSelectedShape("rectangle"));
-    dispatch(setStroke(1));
-    dispatch(setOpacity(10));
+    dispatch(resetShapeStyle());
 
     const toolbar = window.document.getElementById("DocumentShapeTool");
     if (toolbar) {
       toolbar.style.left = "";
       toolbar.style.top = "";
       toolbar.style.right = "88px";
-      toolbar.style.bottom = "180px";
+      toolbar.style.bottom = "100px";
     }
     setTimeout(() => {
       if (!isShapeModified && showShapeCustomTable) {
         instance?.UI.setToolMode("AnnotationEdit");
       } else {
-        const toolName = getToolNameFromShape(selectedShape);
+        const toolName = getToolNameFromShape(shapeAnnotation.selectedShape);
         instance?.UI.setToolMode(toolName);
       }
       dispatch(toggleShowShapeCustomTable());
     }, 0);
   };
-  
+  if (!action?.includes("EDIT")) return null;
   return (
     <div className="absolute bottom-[120px] left-[1320px] h-[48px] flex items-center gap-2 px-2 py-2 rounded-lg shadow-md bg-white w-fit">
       <div className="flex items-center h-full gap-2 text-gray-800">
@@ -97,10 +116,12 @@ export default function AnnotationButton({instanceRef,getToolNameFromShape,actio
           disabled={action?.includes("EDIT") ? false : true}
         >
           <RiRectangleLine className="" />
-          <span className="text-md font-[400]">Shape</span>
+          <span className="text-md font-[400]">{t("docDetail.shape")}</span>
         </button>
 
-        <IoIosArrowDown onClick={action?.includes("EDIT") ? handleShapeAnnotation: undefined} />
+        <IoIosArrowDown
+          onClick={action?.includes("EDIT") ? handleShapeAnnotation : undefined}
+        />
       </div>
 
       <div className="w-px h-5 bg-gray-300"></div>
@@ -115,10 +136,11 @@ export default function AnnotationButton({instanceRef,getToolNameFromShape,actio
         <span className="text-base">
           +<span className="font-serif text-2xl">T</span>
         </span>
-        <span className="text-sm font-[400]">Type</span>
+        <span className="text-sm font-[400]">{t("docDetail.text")}</span>
       </button>
-      <IoIosArrowDown onClick={action?.includes("EDIT") ? handleTextAnnotation: undefined} />
+      <IoIosArrowDown
+        onClick={action?.includes("EDIT") ? handleTextAnnotation : undefined}
+      />
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { plainToClass, plainToInstance } from 'class-transformer';
@@ -54,7 +55,7 @@ export class AuthService {
   setCookie(res: Response, name: string, value: string, maxAge: number) {
     res.cookie(name, value, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // dùng true khi production
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge,
     });
@@ -68,17 +69,16 @@ export class AuthService {
     if (invitation_token) {
       try {
         const payload = await this.jwtService.verifyAsync(invitation_token, {
-        secret: process.env.JWT_INVITATION_KEY,
-      });
-      if (payload && payload.email !== email) {
-        throw new BadRequestException(
-          `You must use the email address ${payload.email} you used to sign up with invitation token.`,
-        );
-      }
+          secret: process.env.JWT_INVITATION_KEY,
+        });
+        if (payload && payload.email !== email) {
+          throw new ForbiddenException(
+            `You must use the email address ${payload.email} to sign up`,
+          );
+        }
       } catch (error) {
-        throw new BadRequestException(
-          'Invalid or expired invitation token.',
-        );
+        if (error instanceof ForbiddenException) throw error;
+        throw new BadRequestException('Invalid or expired invitation token.');
       }
     }
     const existingUser = await this.userService.findbyEmail(email);
@@ -135,7 +135,7 @@ export class AuthService {
       throw new BadRequestException('User ID is required');
     }
     const newUser = await this.userService.updateUser(_id, { isVerify: true });
-    const userDTO = plainToInstance(UserDTO, newUser.toObject(), {
+    const userDTO = plainToInstance(UserDTO, newUser, {
       excludeExtraneousValues: true,
     });
     return userDTO;
@@ -155,7 +155,7 @@ export class AuthService {
         foundUser.password,
       );
       if (isPasswordValid) {
-        const userDTO = plainToInstance(UserDTO, foundUser.toObject(), {
+        const userDTO = plainToInstance(UserDTO, foundUser, {
           excludeExtraneousValues: true,
         });
         return userDTO;
@@ -249,8 +249,8 @@ export class AuthService {
     const user = await userinfoResponse.json();
     const { name, email, sub, picture } = user;
     if (emailChecked && emailChecked !== email) {
-      throw new BadRequestException(
-        `You must use the email address ${emailChecked} you used to sign up with Google.`,
+      throw new ForbiddenException(
+        `You must use the email address ${emailChecked} to sign up with Google.`,
       );
     }
     const existingUser = await this.userService.findbyEmail(email, false);
@@ -310,10 +310,9 @@ export class AuthService {
       );
     }
     const user = await userinfoResponse.json();
-
     if (emailChecked && emailChecked !== user.email) {
-      throw new BadRequestException(
-        `You must use the email address ${emailChecked} you used to sign up with Google.`,
+      throw new ForbiddenException(
+        `You must use the email address ${emailChecked} to sign up with Google.`,
       );
     }
     const subject = user.sub;

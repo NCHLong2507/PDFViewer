@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 
 interface OpacitySectionProps {
   opacity: number;
@@ -5,9 +6,10 @@ interface OpacitySectionProps {
 }
 
 export default function OpacitySection({opacity,setOpacity}:OpacitySectionProps) {
+  const {t} = useTranslation();
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-700 mb-2">Opacity</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-2">{t("docDetail.opacity")}</h3>
       <div className="flex items-center justify-between gap-2 mb-2">
         <input
           type="range"

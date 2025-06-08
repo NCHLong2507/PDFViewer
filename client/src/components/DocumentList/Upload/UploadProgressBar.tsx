@@ -12,7 +12,7 @@ export default function UploadProgressBar({currentFileName, uploadProgress, setI
   return (
     <div className="w-[448px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg shadow-md border border-gray-300 bg-white z-50">
       <div className="flex h-[54px] p-[16px] justify-between items-center border-b border-gray-300">
-        <span className="font-bold">{t("Uploading")}</span>
+        <span className="font-bold">{t("docList.uploading")}</span>
         <button
           onClick={() => setIsUploadModal(false)}
           className="text-gray-400 text-2xl hover:text-black"

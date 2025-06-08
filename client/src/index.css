@@ -37,7 +37,7 @@ body {
   appearance: none;
   background: transparent;
   cursor: pointer;
-  height: 1px;
+  height: 2px;
 }
 
 #stroke-range {
@@ -50,15 +50,15 @@ body {
 }
 
 #stroke-range::-webkit-slider-runnable-track {
-  height: 1px;
+  height: 3px;
   background: rgba(188, 207, 220, 1);
-  border-radius: 1px;
+  border-radius: 3px;
 }
 
 #stroke-range::-moz-range-track {
-  height: 1px;
+  height: 3px;
   background: rgba(188, 207, 220, 1);
-  border-radius: 1px;
+  border-radius: 3px;
 }
 
 #stroke-range::-webkit-slider-thumb {

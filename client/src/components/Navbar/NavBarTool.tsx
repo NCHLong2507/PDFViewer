@@ -20,9 +20,9 @@ export default function NavBarTool() {
     if (hour >= 5 && hour < 12) {
       setGreeting(t(`navbar.goodMorning`));
     } else if (hour >= 12 && hour < 18) {
-      setGreeting(t(`Good afternoon,`));
+      setGreeting(t(`navbar.goodAfternoon`));
     } else {
-      setGreeting(t(`Good evening,`));
+      setGreeting(t(`navbar.goodEvening`));
     }
   }, [t]);
   useEffect(() => {

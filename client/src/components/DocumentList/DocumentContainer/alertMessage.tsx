@@ -3,7 +3,7 @@ import { RiAlertLine } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import { useTranslation } from "react-i18next";
-import { setShowAlert } from "../../../store/documentListSlice";
+import { setShowAlert } from "../../../store/documentListSlice/documentListSlice";
 export default function alertMessage() {
   const alertMessage = useSelector(
     (state: RootState) => state.docList.alertMessage
@@ -21,7 +21,7 @@ export default function alertMessage() {
 
       <div className="flex-1">
         <strong className="font-bold block">
-          {t("Cannot Upload This File")}
+          {t("docList.cannotUploadFile")}
         </strong>
         <span className="block mt-1">{alertMessage}</span>
       </div>

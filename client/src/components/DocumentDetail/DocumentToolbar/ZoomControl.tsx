@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { setZoomLevel } from "../../../store/documentViewerSlice";
+import { setZoomLevel } from "../../../store/documentDetailSlice/documentDetailSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { FaAngleDown } from "react-icons/fa";
 import type { AppDispatch, RootState } from "../../../store/store";
@@ -7,14 +7,14 @@ import type { WebViewerInstance } from "@pdftron/webviewer";
 interface ZoomControlProps {
   instanceRef: React.RefObject<WebViewerInstance>;
 }
-export default function ZoomControl({instanceRef}:ZoomControlProps) {
+export default function ZoomControl({ instanceRef }: ZoomControlProps) {
   const dispatch = useDispatch<AppDispatch>();
   const zoomLevel = useSelector((state: RootState) => state.editor.zoomLevel);
   const [inputValue, setInputValue] = useState<string>(
     Math.round(zoomLevel * 100).toString() + "%"
   );
   const [showDropdown, setShowDropdown] = useState(false);
-  const options = ["50%", "75%", "100%", "125%", "150%", "200%"];
+  const options = ["50%", "75%", "90%", "100%", "125%", "150%", "200%"];
   const handleZoomOut = () => {
     if (zoomLevel > 0.5) {
       const newZoom = Math.round((zoomLevel - 0.01) * 100) / 100;
@@ -81,7 +81,7 @@ export default function ZoomControl({instanceRef}:ZoomControlProps) {
         />
 
         {showDropdown && (
-          <div className="absolute top-[-200px] mt-1 w-24 border border-gray-300 bg-white rounded shadow z-10">
+          <div className="absolute top-[-235px] mt-1 w-24 border border-gray-300 bg-white rounded shadow z-10">
             {options.map((opt) => (
               <div
                 key={opt}

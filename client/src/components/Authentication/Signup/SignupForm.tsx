@@ -5,6 +5,9 @@ import { useAuth } from "../../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isValidEmail } from "../../../pages/Authentication/Authentication";
+import { setIsLoading } from "../../../store/documentDetailSlice/documentDetailSlice";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../../store/store";
 interface SignupFormProps {
   isChecked: boolean;
   setCheckError: React.Dispatch<React.SetStateAction<string>>;
@@ -21,6 +24,7 @@ export default function SignupForm({
   const emailField = useField("");
   const passwordField = useField("");
   const confirmPasswordField = useField("");
+  const dispatch = useDispatch<AppDispatch>();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup } = useAuth();
@@ -68,6 +72,7 @@ export default function SignupForm({
     }
     if (hasError) return;
     try {
+      dispatch(setIsLoading(true));
       const result = await signup(
         {
           name: fullnameField.value,
@@ -80,12 +85,18 @@ export default function SignupForm({
         navigate(`/verifyemail?user_id=${result.user_id}`);
       } else if (result.statusCode === 409) {
         emailField.setError(result.message as string);
+      } else if (result.statusCode === 403) {
+        console.log(result.message);
+        const email = result.message ? result.message.split(" ")[6] : "";
+        setGoogleErrorMesssage(t("auth.errorEmailSignup", { email }));
       } else {
         setGoogleError(true);
         setGoogleErrorMesssage(result.message as string);
       }
     } catch (err) {
       console.log(err);
+    } finally {
+      dispatch(setIsLoading(false));
     }
   };
   return (
@@ -110,7 +121,7 @@ export default function SignupForm({
           }}
           className={`py-[12px] px-[16px] h-[40px]  rounded-[8px] min-w-[240px] bg-white
                  ${fullnameField.errorBorderClass}`}
-          placeholder="Input full name"
+          placeholder={t("auth.inputFullName")}
         ></input>
         {fullnameField.error && (
           <p className="text-[rgba(144,11,9,1)] leading-[1.4] min-h-[20px] text-sm">
@@ -131,7 +142,7 @@ export default function SignupForm({
           }}
           className={`py-[12px] px-[16px] h-[40px]  rounded-[8px] min-w-[240px] bg-white 
               ${emailField.errorBorderClass}`}
-          placeholder="Input email address"
+          placeholder={t("auth.inputEmail")}
         ></input>
         {emailField.error && (
           <p className="text-[rgba(144,11,9,1)] leading-[1.4] min-h-[20px] text-sm">
@@ -155,7 +166,7 @@ export default function SignupForm({
             }}
             className={`py-[12px] pr-[40px] pl-[16px] h-[40px] rounded-[8px] min-w-[240px] bg-white w-full
                     ${passwordField.errorBorderClass}`}
-            placeholder="Input password"
+            placeholder={t("auth.inputPassword")}
           />
           <button
             type="button"
@@ -187,7 +198,7 @@ export default function SignupForm({
             }}
             className={`py-[12px] pr-[40px] pl-[16px] h-[40px] rounded-[8px] min-w-[240px] bg-white w-full
                     ${confirmPasswordField.errorBorderClass}`}
-            placeholder="Re-confirm password"
+            placeholder={t("auth.inputReconfirmPassword")}
           />
           <button
             type="button"

@@ -1,16 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit'
-import documentViewerSlice from './documentViewerSlice';
-import shapeAnnotationSlice from './shapeAnnotationSlice';
-import documentListSlice from './documentListSlice';
-import textAnnotationSlice from './textAnnotationSlice';
-import shareModalSlice from './shareModalSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import documentListReducer from "./documentListSlice";
+import documentDetailReducer from "./documentDetailSlice";
 export const store = configureStore({
   reducer: {
-    editor: documentViewerSlice,
-    shape: shapeAnnotationSlice,
-    text: textAnnotationSlice,
-    docList: documentListSlice,
-    shareModal: shareModalSlice,
+    ...documentListReducer,
+    ...documentDetailReducer,
   },
 });
 

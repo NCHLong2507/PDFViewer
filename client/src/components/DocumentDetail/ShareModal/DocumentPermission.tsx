@@ -2,16 +2,17 @@ import { PiUserCircleThin } from "react-icons/pi";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import type { Document } from "../../../interface/document";
-import { setCollaborator, setModified } from "../../../store/shareModalSlice";
+import {
+  setCollaborator,
+  setModified,
+} from "../../../store/documentDetailSlice/shareModalSlice";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
-import api from "../../../api/axios";
-
+import { fetchDocumentPermission } from "../../../store/documentDetailSlice/shareModalSlice";
 interface DocumentPermissionProps {
   document: Document;
   action: string[] | undefined;
 }
-
 export default function DocumentPermission({
   document,
   action,
@@ -23,20 +24,7 @@ export default function DocumentPermission({
   );
   const modified = useSelector((state: RootState) => state.shareModal.modified);
   useEffect(() => {
-    const fetchDocumentPermission = async () => {
-      try {
-        const result = await api.get(
-          `/document/documentpermission?id=${document._id}`
-        );
-        if (result && result.data.status === "success") {
-          console.log(result.data.permission);
-          dispatch(setCollaborator(result.data.permission));
-        }
-      } catch (err: any) {
-        console.log(err.config);
-      }
-    };
-    fetchDocumentPermission();
+    dispatch(fetchDocumentPermission(document._id));
   }, []);
   const handleAccessChange = async (
     e: React.ChangeEvent<HTMLSelectElement>,
@@ -73,7 +61,7 @@ export default function DocumentPermission({
           <p className="text-sm text-gray-500">{document.owner.email}</p>
         </div>
         <span className="ml-auto text-sm text-gray-400 mr-1">
-          {t("Doc owner")}
+          {t("docDetail.docOwner")}
         </span>
       </div>
       {collaborator.map((user, id) => (
@@ -99,9 +87,9 @@ export default function DocumentPermission({
             disabled={!action?.includes("ADD")}
             className="ml-auto border border-gray-300 mr-1 rounded-md px-3 py-1.5 text-sm text-gray-700 bg-white shadow-sm"
           >
-            <option value="Viewer">{t("Can view")}</option>
-            <option value="Editor">{t("Can edit")}</option>
-            <option value="Remove">{t("Remove")}</option>
+            <option value="Viewer">{t("docDetail.canView")}</option>
+            <option value="Editor">{t("docDetail.canEdit")}</option>
+            <option value="Remove">{t("docDetail.remove")}</option>
           </select>
         </div>
       ))}

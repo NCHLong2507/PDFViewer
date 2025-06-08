@@ -2,7 +2,11 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import { PiUserCircleThin } from "react-icons/pi";
 import type { Document } from "../../../interface/document";
-import { setEmailInput, setMatchedUser, setUserAddedList } from "../../../store/shareModalSlice";
+import {
+  setEmailInput,
+  setMatchedUser,
+  setUserAddedList,
+} from "../../../store/documentDetailSlice/shareModalSlice";
 
 export default function MatchedUser({ document }: { document: Document }) {
   const matchedUser = useSelector(

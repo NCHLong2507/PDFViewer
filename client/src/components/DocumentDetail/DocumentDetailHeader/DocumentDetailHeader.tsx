@@ -10,7 +10,7 @@ import type { AppDispatch } from "../../../store/store";
 import {
   setShowShareModal,
   toggleDownloadSignal,
-} from "../../../store/documentViewerSlice";
+} from "../../../store/documentDetailSlice/documentDetailSlice";
 interface DocDetailHeaderProps {
   document: Document;
   refetchAction: () => Promise<QueryObserverResult<string[], unknown>>;
@@ -23,7 +23,7 @@ export default function DocumentDetailedHeader({
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const handleBack = () => {
-    navigate('/document/documentlist', { state: { refetch: true } });
+    navigate("/document/documentlist", { state: { refetch: true } });
   };
   return (
     <div className="flex justify-between w-full h-[52px] pt-2 pb-2">
@@ -39,7 +39,7 @@ export default function DocumentDetailedHeader({
           className="flex items-center gap-3 px-4 py-2 border border-[rgba(118, 118, 118, 1)] rounded-md bg-gray-200 hover:bg-gray-300"
         >
           <LuDownload className="w-4 h-4" />
-          <span>{t("Download")}</span>
+          <span>{t("docDetail.download")}</span>
         </button>
 
         <button
@@ -47,7 +47,7 @@ export default function DocumentDetailedHeader({
           className="flex items-center gap-3 px-4 py-2 border border-[rgba(118, 118, 118, 1)] rounded-md bg-gray-200 hover:bg-gray-300"
         >
           <FiShare className="w-4 h-4" />
-          <span>{t("Share")}</span>
+          <span>{t("docDetail.share")}</span>
         </button>
       </div>
     </div>

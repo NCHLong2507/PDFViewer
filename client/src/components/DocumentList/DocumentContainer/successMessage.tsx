@@ -2,7 +2,7 @@ import { FiCheckCircle } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { setShowSuccess } from "../../../store/documentListSlice";
+import { setShowSuccess } from "../../../store/documentListSlice/documentListSlice";
 import type { AppDispatch } from "../../../store/store";
 export default function SuccessMessage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -11,7 +11,7 @@ export default function SuccessMessage() {
     <div className="flex absolute top-[695px] left-[1092px] items-center justify-between w-[392px] bg-green-50 border-[1px] border-green-400 text-green-700 px-4 py-3 rounded-[8px] shadow-md">
       <div className="flex items-center gap-2">
         <FiCheckCircle className="w-5 h-5" />
-        <span className="font-medium">{t("Uploaded successfully")}</span>
+        <span className="font-medium">{t("docList.successMessage")}</span>
       </div>
       <button
         onClick={() => dispatch(setShowSuccess(false))}

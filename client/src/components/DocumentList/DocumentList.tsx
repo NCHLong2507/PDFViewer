@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import DocumentHeader from "./DocumentHeader/DocumentHeader";
 import DocumentContainer from "./DocumentContainer/DocumentContainer";
-import api from "../../api/axios";
+import documentListService from "../../services/documentListService";
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
@@ -13,10 +13,11 @@ import {
   appendDocumentList,
   setId,
   setSortOrder,
-} from "../../store/documentListSlice";
+  setIsLazyLoading,
+} from "../../store/documentListSlice/documentListSlice";
 
 const fetchDocumentCount = async () => {
-  const res = await api.get("/document/documentcount");
+  const res = await documentListService.getDocumentCount();
   return res.data.count;
 };
 
@@ -32,18 +33,16 @@ export default function DocumentList() {
     queryFn: fetchDocumentCount,
     refetchOnWindowFocus: false,
   });
-  const documentList = useSelector(
-    (state: RootState) => state.docList.documentList
-  );
   const fetchDocuments = async () => {
     const sort = sortOrder ? 1 : -1;
-    const res = await api.get(`/document/loaddocument?id=${id}&sort=${sort}`);
+    const res = await documentListService.getDocumentList(id,sort);
     return res.data?.documents || [];
   };
 
   const {
     data: initialDocuments = [],
     refetch: refectInitialDocuments,
+    isLoading,
   } = useQuery({
     queryKey: ["documents"],
     queryFn: fetchDocuments,
@@ -72,15 +71,17 @@ export default function DocumentList() {
     const LazyLoadDocuments = async () => {
       const sort = sortOrder ? 1 : -1;
       try {
-        const results = await api.get(
-          `/document/loaddocument?id=${id}&sort=${sort}`
-        );
+        if (prevSortOrder.current === sortOrder) {
+          dispatch(setIsLazyLoading(true));
+        }
+        const results = await documentListService.getLazyLoadingDocument(id,sort);
         const documents = results.data?.documents;
         if (prevSortOrder.current !== sortOrder) {
           dispatch(setDocumentList(documents));
           prevSortOrder.current = sortOrder;
         } else {
           dispatch(appendDocumentList(documents));
+          dispatch(setIsLazyLoading(false))
         }
       } catch (err: any) {
         console.log(err);
@@ -96,6 +97,7 @@ export default function DocumentList() {
     count,
     refetchCount,
     refectInitialDocuments,
+    isLoading,
   };
 
   return (

@@ -14,6 +14,36 @@ export class AnnotationService {
     @InjectModel('Document')
     private documentModel: Model<Document>,
   ) {}
+  async deleteAnnotation(documentID: string, annotID: string): Promise<void> {
+    if (!annotID || !documentID) {
+      throw new BadRequestException('ID is required');
+    }
+    await this.annotationModel.deleteOne({
+      document: documentID,
+      annotID,
+    });
+    await this.documentModel.findByIdAndUpdate(documentID, {
+      $set: { updatedAt: new Date() },
+    });
+  }
+  async updateAnnotation(
+    documentID: string,
+    annotID: string,
+    xfdf: string,
+  ): Promise<void> {
+    if (!annotID || !documentID) {
+      throw new BadRequestException('ID and xfdfe is required');
+    }
+
+    await this.annotationModel.updateOne(
+      { document: documentID, annotID },
+      { xfdf },
+      { upsert: true },
+    );
+    await this.documentModel.findByIdAndUpdate(documentID, {
+      $set: { updatedAt: new Date() },
+    });
+  }
   async createAnnotation(
     documentID: string,
     annotID: string,
@@ -36,88 +66,24 @@ export class AnnotationService {
     });
     return annotationDTO;
   }
-  async deleteAnnotation(documentID: string, annotID: string): Promise<void> {
-    if (!annotID || !documentID) {
-      throw new BadRequestException('ID is required');
-    }
-    const result = await this.annotationModel.deleteOne({
-      document: documentID,
-      annotID,
-    });
-    await this.documentModel.findByIdAndUpdate(documentID, {
-      $set: { updatedAt: new Date() },
-    });
-    if (result.deletedCount === 0) {
-      throw new BadRequestException('Annotation not found');
-    }
-  }
-  async updateAnnotation(
-    documentID: string,
-    annotID: string,
-    xfdf: string,
-  ): Promise<void> {
-    if (!annotID || !documentID) {
-      throw new BadRequestException('ID and xfdfe is required');
-    }
-    const result = await this.annotationModel.updateOne(
-      { document: documentID, annotID },
-      { $set: { xfdf } },
-    );
-    await this.documentModel.findByIdAndUpdate(documentID, {
-      $set: { updatedAt: new Date() },
-    });
-    if (result.modifiedCount === 0) {
-      throw new BadRequestException('Annotation not found or no changes made');
-    }
-  }
-  async mergeXfdfStrings(xfdfList: string[]): Promise<string> {
-    const parser = new xml2js.Parser();
-    const builder = new xml2js.Builder({
-      headless: false,
-      xmldec: {
-        version: '1.0',
-        encoding: 'UTF-8',
-      },
-    });
-
-    const allAnnots: Record<string, any[]> = {};
-
-    for (const xfdf of xfdfList) {
-      const parsed = await parser.parseStringPromise(xfdf);
-      const annots = parsed?.xfdf?.annots?.[0];
-
-      if (annots) {
-        for (const [type, value] of Object.entries(annots)) {
-          if (!Array.isArray(value)) continue;
-          if (!allAnnots[type]) {
-            allAnnots[type] = [];
-          }
-          allAnnots[type].push(...value);
-        }
-      }
-    }
-
-    const mergedXfdfObj = {
-      xfdf: {
-        $: {
-          xmlns: 'http://ns.adobe.com/xfdf/',
-          'xml:space': 'preserve',
-        },
-        annots: [allAnnots],
-      },
-    };
-
-    return builder.buildObject(mergedXfdfObj);
+  extractAnnots(xmlString) {
+    const match = xmlString.match(/<annots>[\s\S]*?<\/annots>/);
+    return match
+      ? match[0].replace('<annots>', '').replace('</annots>', '')
+      : '';
   }
   async getAnnotationsByDocumentId(documentID: string): Promise<string> {
     if (!documentID) {
       throw new BadRequestException('Document ID is required');
     }
-    const annotations = await this.annotationModel.find({
-      document: documentID,
-    });
-    const xfdfList = annotations.map((a) => a.xfdf);
-    const mergedXfdf = await this.mergeXfdfStrings(xfdfList);
-    return mergedXfdf;
+    const annotations = await this.annotationModel
+      .find({
+        document: documentID,
+      })
+      .lean();
+
+    const annotsXml = annotations.map((a) => this.extractAnnots(a.xfdf)).join();
+    const xfdf = `<?xml version="1.0" encoding="UTF-8"?> <xfdf xmlns="http://ns.adobe.com/xfdf/" xml:space="preserve"> <fields /> <annots> ${annotsXml} </annots> </xfdf>`;
+    return xfdf;
   }
 }

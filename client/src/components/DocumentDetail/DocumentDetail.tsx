@@ -2,9 +2,9 @@ import DocumentDetailedHeader from "./DocumentDetailHeader/DocumentDetailHeader"
 import DocumentDetailedContainer from "./DocumentDetailContainer/DocumentDetailContainer";
 import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import type { Document as DocumentDTO } from "../../interface/document";
-import api from "../../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import documentDetailService from "../../services/documentDetailService";
 
 export default function DocumentDetailed() {
   const location = useLocation();
@@ -14,17 +14,16 @@ export default function DocumentDetailed() {
   const id = searchParams.get("id");
 
   const fetchDocument = async (): Promise<DocumentDTO> => {
-    if (!id) throw new Error("Missing id");
-    const res = await api.get(`/document/documentInfor?id=${id}`);
+    const res = await documentDetailService.getDocumentInfor(id);
     return res.data.document;
   };
 
   const fetchActionPermssion = async (): Promise<string[]> => {
-    const res = await api.get(`/auth/permission?id=${id}`);
+    const res = await documentDetailService.getActionPermission(id);
     return res.data.actions;
   };
 
-  const { data: document, refetch: refetchDocument } = useQuery<DocumentDTO>({
+  const { data: document, refetch: refetchDocument, isLoading: isDocumentLoading } = useQuery<DocumentDTO>({
     queryKey: ["documentInfor", id],
     queryFn: fetchDocument,
     enabled: !!id,
@@ -55,18 +54,17 @@ export default function DocumentDetailed() {
     }
   }, [action, isSuccess, isLoading, isFetching]);
 
-  if (isLoading || isFetching || !action) {
+  if (isLoading || isFetching || !action || isDocumentLoading) {
     return null;
   }
-
   return (
     <div className="flex-col flex gap-[10px] px-[24px] pt-[24px] pb-[16px]">
       <DocumentDetailedHeader
-        document={document}
+        document={document as DocumentDTO}
         refetchAction={refetchAction}
       />
       <DocumentDetailedContainer
-        document={document}
+        document={document as DocumentDTO}
         action={action}
         refetchAction={refetchAction}
         refetchDocument={refetchDocument}

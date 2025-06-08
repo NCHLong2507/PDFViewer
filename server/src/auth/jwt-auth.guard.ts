@@ -14,11 +14,9 @@ export class JwtAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req: Request = context.switchToHttp().getRequest();
     const token = req.cookies?.access_token;
-
     if (!token) {
       throw new UnauthorizedException('Access token not found');
     }
-
     try {
       const payload = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
@@ -27,6 +25,7 @@ export class JwtAuthGuard implements CanActivate {
       req.user = payload;
       return true;
     } catch (err) {
+      console.log(err);
       throw new UnauthorizedException('Access token expired or invalid');
     }
   }

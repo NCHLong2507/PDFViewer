@@ -1,16 +1,15 @@
 import { ImUpload3 } from "react-icons/im";
 import { PDFDocument } from "pdf-lib";
 import React, { useRef } from "react";
-import api from "../../../api/axios";
-import type { AxiosProgressEvent } from "axios";
 import {
   setAlertMessage,
   setShowAlert,
-} from "../../../store/documentListSlice";
+} from "../../../store/documentListSlice/documentListSlice";
 import type { AppDispatch } from "../../../store/store";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import type { Document } from "../../../interface/document";
+import documentListService from "../../../services/documentListService";
 interface LocalUploadProps {
   setCurrentFileName: React.Dispatch<React.SetStateAction<string>>;
   setIsUploadModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -57,13 +56,13 @@ export default function LocalDeviceUpload({
     try {
       const hasPassword = await isPdfPasswordProtected(file);
       if (hasPassword) {
-        dispatch(setAlertMessage(t("errornopass")));
+        dispatch(setAlertMessage(t("docList.errornopass")));
         dispatch(setShowAlert(true));
         e.target.value = "";
         return;
       }
     } catch (err: any) {
-      dispatch(setAlertMessage(err.message || t("Invalid file input")));
+      dispatch(setAlertMessage(err.message || t("docList.invalidFileInput")));
       dispatch(setShowAlert(true));
       e.target.value = "";
       return;
@@ -77,30 +76,20 @@ export default function LocalDeviceUpload({
     dispatch(setShowAlert(false));
 
     try {
-      const result = await api.post("/document/uploadfromlocal", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (e: AxiosProgressEvent) => {
-          if (typeof e.total === "number" && e.total > 0) {
-            let percent = Math.round((e.loaded * 100) / e.total);
-            setUploadProgress(percent);
-          }
-        },
-      });
+      const data = await documentListService.handleLocalDeviceUpload(formData,setUploadProgress);
       setUploadProgress(100);
-      UpdateDocumentList(result.data.document);
+      UpdateDocumentList(data.document);
     } catch (err: any) {
       console.error(err);
       setIsUploadModal(false);
-      const errorMsg = err.response?.data?.message || t("Upload failed");
+      const errorMsg = err.response?.data?.message || t("docList.uploadFailed");
       dispatch(setAlertMessage(errorMsg));
       dispatch(setShowAlert(true));
-    } 
+    }
   };
   const handleLocalButtonClick = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""; 
+      fileInputRef.current.value = "";
       fileInputRef.current.click();
     }
   };
@@ -119,7 +108,7 @@ export default function LocalDeviceUpload({
         }}
         className="w-full flex justify-start items-center text-left px-4 py-2 rounded-md hover:bg-gray-100"
       >
-        <ImUpload3 className="w-4 h-4 mr-2" /> {t("Upload from local device")}
+        <ImUpload3 className="w-4 h-4 mr-2" /> {t("docList.uploadFromLocal")}
       </button>
     </div>
   );

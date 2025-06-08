@@ -9,6 +9,7 @@ import DocumentDetailed from "../components/DocumentDetail/DocumentDetail";
 import PageNotFound from "../pages/PageNotFound";
 import NoPermissionPage from "../pages/Document/NoPermissionPage";
 import Document from "../pages/Document/Document";
+import TokenExpiredPage from "../pages/InvitationTokenExpired";
 const router = createBrowserRouter([
   {
     path: "/document",
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
   {
     path: "/successverifyemail",
     element: <SuccessVerifyEmail />,
+  },
+  {
+    path: "/invalidToken",
+    element: <TokenExpiredPage/>
   },
   {
     path: "*",

@@ -4,6 +4,7 @@ import { AnnotationService } from './annotation.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AnnotationSchema } from './annotation.schema';
 import { DocumentSchema } from '../document/schema/document.schema';
+import { DocumentModule } from 'src/document/document.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -16,6 +17,7 @@ import { DocumentSchema } from '../document/schema/document.schema';
         schema: DocumentSchema
       }
     ]),
+    DocumentModule
   ],
   controllers: [AnnotationController],
   providers: [AnnotationService],

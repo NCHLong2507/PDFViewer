@@ -5,7 +5,7 @@ import {
   Query,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Document, DocumentDocument } from './schema/document.schema';
 import { DocumentPermission } from './schema/document_permission.schema';
@@ -21,6 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenExpiredError } from '@nestjs/jwt';
 import axios from 'axios';
 import cloudinary from 'src/cloudinary/cloudinary.config';
+import { UserDTO } from 'src/user/DTO/UserDTO';
 
 @Injectable()
 export class DocumentService {
@@ -39,21 +40,52 @@ export class DocumentService {
   async getDocumentLazyLoading(
     id: string,
     desc: boolean = true,
+    user: UserDTO,
   ): Promise<DocumentDTO[]> {
     const page = parseInt(id, 10);
     const limit = 10;
     const skip = page * limit;
     const updatedAt = desc ? -1 : 1;
+
+    const ownDocs = await this.documentModel
+      .find({ owner: new Types.ObjectId(user._id) })
+      .select('_id')
+      .lean();
+
+    const permissionDocs = await this.documentPermisionModel
+      .find({ user: new Types.ObjectId(user._id) })
+      .select('document')
+      .lean();
+    const ownDocIds = ownDocs.map((doc) => doc._id.toString());
+    const permDocIds = permissionDocs.map((p) => p.document.toString());
+    const allDocIds = Array.from(new Set([...ownDocIds, ...permDocIds]));
+
     const documents = await this.documentModel
-      .find()
+      .find({ _id: { $in: allDocIds } })
       .sort({ updatedAt })
       .skip(skip)
       .limit(limit)
-      .populate('owner', 'name email picture');
+      .populate('owner', 'name email picture')
+      .lean();
+
     const documentDTOs = plainToInstance(DocumentDTO, documents, {
       excludeExtraneousValues: true,
     });
     return documentDTOs;
+  }
+
+  async getDocumentCountByUser(user: UserDTO): Promise<number> {
+    const ownDocs = await this.documentModel
+      .find({ owner: new Types.ObjectId(user._id) })
+      .select('_id')
+      .lean();
+
+    const permissionDocs = await this.documentPermisionModel
+      .find({ user: new Types.ObjectId(user._id) })
+      .select('document')
+      .lean();
+
+    return ownDocs.length + permissionDocs.length;
   }
 
   async createDocument(
@@ -79,10 +111,6 @@ export class DocumentService {
     return documentDTO;
   }
 
-  async getDocumentCount(): Promise<number> {
-    return await this.documentModel.countDocuments();
-  }
-
   async getDocumentInfor(_id: string): Promise<DocumentDTO> {
     if (!_id) {
       throw new BadRequestException('Missing id');
@@ -90,7 +118,8 @@ export class DocumentService {
     const documentID = new mongoose.Types.ObjectId(_id);
     const foundDocument = await this.documentModel
       .findById(documentID)
-      .populate('owner', 'name email picture');
+      .populate('owner', 'name email picture')
+      .lean();
     const retdocument = plainToInstance(DocumentDTO, foundDocument, {
       excludeExtraneousValues: true,
     });
@@ -106,7 +135,7 @@ export class DocumentService {
       throw new NotFoundException('Document not found');
     }
     document.isLoadingFirst = true;
-    await document.save();
+    await document.save({ timestamps: false });
   }
   async getDocumentPermissionPerUser(
     _id: string,
@@ -120,21 +149,24 @@ export class DocumentService {
 
     const document = await this.documentModel
       .findById(documentID)
-      .populate('owner', 'name email picture');
+      .populate('owner', 'name email picture')
+      .lean();
     if (!document) {
       throw new BadRequestException('Document is invalid or being removed');
     }
     let role: string;
     const collaborator = await this.documentPermisionModel
       .find({ document: documentID })
-      .populate('user', 'name email picture');
+      .populate('user', 'name email picture')
+      .lean();
     const collaboratorList = plainToInstance(
       DocumentPermissionDTO,
       collaborator,
       { excludeExtraneousValues: true },
     );
-    const owner = document.owner as any;
-    if (owner.email === email) {
+    const owner = document.owner;
+
+    if (owner && 'email' in owner && owner.email === email) {
       role = 'Owner';
     } else {
       const matchedCollaborator = collaboratorList.find((collab) => {
@@ -161,7 +193,8 @@ export class DocumentService {
     const documentID = new mongoose.Types.ObjectId(_id);
     const collaborator = await this.documentPermisionModel
       .find({ document: documentID })
-      .populate('user', '_id name email picture');
+      .populate('user', '_id name email picture')
+      .lean();
     const collaboratorDTO = plainToInstance(
       DocumentPermissionDTO,
       collaborator,
@@ -175,51 +208,54 @@ export class DocumentService {
     collaborator: DocumentPermissionDTO[],
   ) {
     if (!_id) {
-      throw new BadRequestException('Missing data');
+      throw new BadRequestException('Missing document ID');
     }
+
     const documentID = new mongoose.Types.ObjectId(_id);
     const document = await this.documentModel
       .findById(documentID)
       .populate('owner', 'email');
-    console.log('Document:', document);
+
     if (!document) {
       throw new BadRequestException('Document not found');
     }
-    const collaboratorDocuments = await this.documentPermisionModel
+
+    const existingPermissions = await this.documentPermisionModel
       .find({ document: documentID })
       .populate('user', 'name email');
-    for (const collab of collaborator) {
-      const email = collab.user.email;
-      const role = collab.role;
-      if (!email || !role) {
+
+    // Tạo map để tra cứu nhanh theo email
+    const permissionMap = new Map(
+      existingPermissions.map((perm) => [(perm.user as any).email, perm]),
+    );
+
+    for (const { user, role } of collaborator) {
+      if (!user?.email || !role) {
         throw new BadRequestException(
-          'Email or role is missing in collaborator data',
+          'Missing email or role in collaborator data',
         );
       }
-
-      let collaboratorToUpdate = collaboratorDocuments.find(
-        (collab) => (collab.user as any).email === email,
-      );
-
-      if (collaboratorToUpdate) {
+      const existing = permissionMap.get(user.email);
+      if (existing) {
         if (role === 'Remove') {
-          await this.documentPermisionModel.deleteOne({
-            _id: collaboratorToUpdate._id,
-          });
+          await this.documentPermisionModel.deleteOne({ _id: existing._id });
         } else {
           const newRole =
             role === 'Viewer'
               ? CollaboratorRole.VIEWER
               : CollaboratorRole.EDITOR;
-          collaboratorToUpdate.role = newRole;
-          await collaboratorToUpdate.save();
+          if (existing.role !== newRole) {
+            existing.role = newRole;
+            await existing.save();
+          }
         }
       } else {
         throw new BadRequestException(
-          `User with email ${email} is not a collaborator of this document`,
+          `User ${user.email} is not a collaborator of this document`,
         );
       }
     }
+
     (document as any).updatedAt = new Date();
     await document.save();
   }
@@ -280,7 +316,7 @@ export class DocumentService {
         this.mailService.sendEmail({
           subject: `Bạn đã được thêm quyền ${newRole} cho tài liệu "${document.name}"`,
           template: 'document-access-control-notification',
-          email: user?.email as string,
+          email: user && 'email' in user ? (user.email as string) : '',
           context: {
             documentName: document.name,
             documentLink: `http://localhost:5173/document/documentdetailed?id=${_id}`,
@@ -394,8 +430,10 @@ export class DocumentService {
         throw error;
       }
       if (error instanceof TokenExpiredError) {
-        console.error('TokenExpiredError:', error.message);
-        throw new UnauthorizedException('Invitation token has expired.');
+        return {
+          status: false,
+          message: "Invalid or expired token"
+        };
       }
       throw new UnauthorizedException(error.message);
     }

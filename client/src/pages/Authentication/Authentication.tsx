@@ -5,21 +5,35 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageNotFound from "../PageNotFound";
 import { Toaster } from "react-hot-toast";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
+import { useLocation } from "react-router-dom";
+
+import LoadingAnimation from "../../components/Common/LoadingAnimation";
 export const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 export default function Authentication() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
+  const isLoading = useSelector((state: RootState) => state.editor.isLoading);
+  const location = useLocation();
   if (location.pathname === "/document") {
     return <PageNotFound />;
   }
   const { checkAuthorization } = useAuth();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+
+  const invitationToken = searchParams.get("invitation_token");
+
   useEffect(() => {
     const checkAuth = async () => {
-      const authorized = await checkAuthorization();
-      if (authorized) {
+      const authorized = await checkAuthorization(invitationToken);
+      if (authorized.directURL) {
+        console.log("ABC")
+        return navigate(authorized.directURL, { replace: true }); 
+      }
+      if (authorized.status) {
         navigate("/document/documentlist", { replace: true });
       } else {
         setIsCheckingAuth(false);
@@ -32,6 +46,12 @@ export default function Authentication() {
   if (isCheckingAuth) return null;
   return (
     <div className="bg-auth flex flex-row items-center justify-end">
+      {isLoading && (
+        <LoadingAnimation
+          className="w-10 h-10 border-4 border-yellow-400"
+          position="absolute top-4"
+        />
+      )}
       <Toaster
         toastOptions={{
           success: {

@@ -5,13 +5,16 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isValidEmail } from "../../../pages/Authentication/Authentication";
 import { useAuth } from "../../../context/AuthContext";
+import { setIsLoading } from "../../../store/documentDetailSlice/documentDetailSlice";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../../store/store";
 interface LoginFormProps {
   setGoogleError: React.Dispatch<React.SetStateAction<boolean>>;
 }
 export default function LoginForm({ setGoogleError }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
-
+  const dispatch = useDispatch<AppDispatch>();
   const emailField = useField("");
   const passwordField = useField("");
   const navigate = useNavigate();
@@ -33,6 +36,7 @@ export default function LoginForm({ setGoogleError }: LoginFormProps) {
     }
     if (!hasError) {
       try {
+        dispatch(setIsLoading(true));
         const result = await login(emailField.value, passwordField.value);
         if (result && result.success) {
           setUserInfor(result.user);
@@ -43,14 +47,16 @@ export default function LoginForm({ setGoogleError }: LoginFormProps) {
           navigate(redirectPath, { replace: true });
         } else {
           if (result && result.statusCode === 409) {
-            setLoginError(result.message as string);
-          } else setLoginError(result.message as string);
+            setLoginError(t("auth.loginAccountGoogleError"));
+          } else setLoginError(t("auth.incorrectEmailOrPassword"));
           emailField.setError("");
           passwordField.setError("");
         }
       } catch (err) {
         console.error("Login error:", err);
         setLoginError(t("An error occurred. Please try again."));
+      } finally {
+        dispatch(setIsLoading(false));
       }
     }
   };
@@ -81,7 +87,7 @@ export default function LoginForm({ setGoogleError }: LoginFormProps) {
                     ? "border-[1.5px] border-[rgba(144,11,9,1)]"
                     : "border border-[#D9D9D9]"
                 }`}
-          placeholder="Input email address"
+          placeholder={t("auth.inputEmail")}
         />
         {emailField.error && (
           <p className="text-[rgba(144,11,9,1)] leading-[1.4] min-h-[20px] text-sm">
@@ -110,7 +116,7 @@ export default function LoginForm({ setGoogleError }: LoginFormProps) {
                       ? "border-[1.5px] border-[rgba(144,11,9,1)]"
                       : "border border-[#D9D9D9]"
                   }`}
-            placeholder="Input password"
+            placeholder={t("auth.inputPassword")}
           />
           <button
             type="button"

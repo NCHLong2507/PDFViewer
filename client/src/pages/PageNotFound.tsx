@@ -7,7 +7,7 @@ const NotFound: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const handleGoHome = () => {
-    navigate("/document/documentlist");
+    navigate("/document/documentlist",{replace:true});
   };
 
   return (
@@ -17,14 +17,14 @@ const NotFound: React.FC = () => {
         <div className="text-center h-full items-center justify-center flex flex-col">
           <img src={NotFoundImage} className="w-45 h-45"></img>
           <p className="mt-4 text-3xl font-bold text-gray-800">
-            {t("Page Not Found")}
+            {t("docList.pageNotFound")}
           </p>
           <p className="mt-2 text-gray-600">{t("pageremoved")}</p>
           <button
             onClick={handleGoHome}
             className="mt-6 px-6 py-2 hover:bg-[#e6b800] font-bold bg-[rgba(245,199,49,1)] text-white rounded-lg shadow transition"
           >
-            {t("Back to document")}
+            {t("docList.backToDocButton")}
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { MdOutlineFileUpload } from "react-icons/md";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { Document } from "../../../interface/document";
 import type { QueryObserverResult } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -7,7 +7,7 @@ import {
   setShowSuccess,
   addDocumentToFront,
   appendDocumentList,
-} from "../../../store/documentListSlice";
+} from "../../../store/documentListSlice/documentListSlice";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../../../store/store";
 import LocalDeviceUpload from "./LocalDeviceUpload";
@@ -36,7 +36,7 @@ export default function UploadButton({
   );
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
-  
+
   const UpdateDocumentList = (document: Document) => {
     setTimeout(() => {
       setIsUploadModal(false);
@@ -64,7 +64,7 @@ export default function UploadButton({
     setIsUploadModal,
     setUploadProgress,
     setIsOpen,
-    UpdateDocumentList
+    UpdateDocumentList,
   };
   return (
     <div>
@@ -75,14 +75,14 @@ export default function UploadButton({
         >
           <div className="flex justify-center items-center gap-[8px]">
             <MdOutlineFileUpload className="w-[16px] h-[16px]" />
-            <span>{t("Upload Document")}</span>
+            <span>{t("docList.uploadDocumentButton")}</span>
           </div>
         </button>
 
         {isOpen && (
           <div
-            className="absolute top-full mt-[10px]  left-[50%] ml-[-110px] 
-               text-sm z-20 bg-white rounded-md shadow-lg border min-w-[200px]"
+            className="absolute top-full mt-[10px]  left-[50%] ml-[-127px] 
+               text-sm z-20 bg-white rounded-md shadow-lg border "
           >
             <LocalDeviceUpload {...uploadProps} />
             <GGDriveUpload {...uploadProps} />

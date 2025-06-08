@@ -124,18 +124,18 @@ export class AuthController {
       access_token,
       30 * 60 * 1000,
     );
-    let info: string = '';
     if (invitation_token) {
       const result =
         await this.documentService.verifyInvitationToken(invitation_token);
-      if (result) {
-        const jsonString = JSON.stringify(result);
-        info = encodeURIComponent(Buffer.from(jsonString).toString('base64'));
+      if (result && result.status) {
+        res.redirect(
+          `http://localhost:5173/document/documentdetailed?id=${result.documentID}`,
+        );
+      } else if (result && !result.status) {
+        res.redirect(`http://localhost:5173/invalidToken`);
       }
     }
-    const directURL = info
-      ? `http://localhost:5173/successverifyemail?info=${info}`
-      : 'http://localhost:5173/successverifyemail';
+    const directURL = 'http://localhost:5173/successverifyemail';
     res.redirect(directURL);
   }
 
@@ -169,10 +169,24 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/authorize')
-  async GetUserAuthorized(@NestRequest() req: Request) {
+  async GetUserAuthorized(
+    @NestRequest() req: Request,
+    @Query('invitation_token') invitation_token: string,
+  ) {
+    let directURL = '';
+    if (invitation_token) {
+      const result =
+        await this.documentService.verifyInvitationToken(invitation_token);
+      if (result && result.status) {
+        directURL = `/document/documentdetailed?id=${result.documentID}`;
+      } else if (result && !result.status) {
+        directURL = `/invalidToken`;
+      }
+    }
     return {
       status: 'success',
       user: req.user,
+      directURL,
     };
   }
 
@@ -204,17 +218,25 @@ export class AuthController {
       throw new UnauthorizedException('Missing headers');
     }
     const gg_access_token = authHeader.split(' ')[1];
-    let result: {status: boolean, documentID?: string, documentName?: string, email?: string} | null = null;
+    let result: {
+      status: boolean;
+      documentID?: string;
+      documentName?: string;
+      email?: string;
+    } | null = null;
     if (invitation_token) {
       result =
         await this.documentService.verifyInvitationToken(invitation_token);
     }
     const emailChecked = result ? result.email : null;
-    let user = await this.authService.GoogleLogin(gg_access_token, emailChecked);
+    let user = await this.authService.GoogleLogin(
+      gg_access_token,
+      emailChecked,
+    );
     if (!user) {
       user = await this.authService.GoogleSignup(gg_access_token, emailChecked);
     }
-    const access_token = await this.authService.signToken(user); 
+    const access_token = await this.authService.signToken(user);
     const refresh_token = await this.authService.signToken(
       user,
       '14d',
@@ -237,9 +259,11 @@ export class AuthController {
       user,
       directURL: '',
     };
-    
+
     if (result && result.status) {
       retData.directURL = `/document/documentdetailed?id=${result.documentID}`;
+    } else if (result && !result.status) {
+      retData.directURL = `/invalidToken`;
     }
     return retData;
   }

@@ -15,7 +15,7 @@ export default function Document() {
   const navigate = useNavigate();
   useEffect(() => {
     const checkAuth = async () => {
-      const authorized = await checkAuthorization();
+      const authorized = await checkAuthorization(null);
       if (!authorized) {
         navigate("/auth/login", { replace: true });
       }

@@ -1,17 +1,16 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { IoMdCloudUpload } from "react-icons/io";
 import {
   setAlertMessage,
   setShowAlert,
-} from "../../../store/documentListSlice";
+} from "../../../store/documentListSlice/documentListSlice";
 import type { AppDispatch, RootState } from "../../../store/store";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import type { AxiosProgressEvent } from "axios";
-import api from "../../../api/axios";
 import type { Document } from "../../../interface/document";
-import { setGoogleAccessToken } from "../../../store/documentListSlice";
+import { setGoogleAccessToken } from "../../../store/documentListSlice/documentListSlice";
+import documentListService from "../../../services/documentListService";
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY as string;
 declare global {
   interface Window {
@@ -33,7 +32,6 @@ export default function GGDriveUpload({
   setIsOpen,
   UpdateDocumentList,
 }: GGDriveUploadProps) {
-
   const dispatch = useDispatch<AppDispatch>();
   const googleAccessToken = useSelector(
     (state: RootState) => state.docList.googleAccessToken
@@ -46,7 +44,7 @@ export default function GGDriveUpload({
     },
     onError: (error) => {
       console.error("Google Login Failed:", error);
-      dispatch(setAlertMessage(t("Google login failed")));
+      dispatch(setAlertMessage(t("auth.googleLoginFailed")));
       dispatch(setShowAlert(true));
     },
     scope: "https://www.googleapis.com/auth/drive.readonly",
@@ -70,7 +68,7 @@ export default function GGDriveUpload({
   const createGoogleDrivePicker = useCallback(
     (token: string) => {
       if (!window.google) {
-        dispatch(setAlertMessage(t("pickererror")));
+        dispatch(setAlertMessage(t("docList.pickererror")));
         dispatch(setShowAlert(true));
         return;
       }
@@ -87,7 +85,6 @@ export default function GGDriveUpload({
             window.google.picker.Action.PICKED
           ) {
             const doc = data[window.google.picker.Response.DOCUMENTS][0];
-            console.log("TOKEN", token);
             handleDriveFileSelection(doc, token);
           } else if (
             data[window.google.picker.Response.ACTION] ===
@@ -111,34 +108,17 @@ export default function GGDriveUpload({
     dispatch(setShowAlert(false));
     const size = fileData.sizeBytes;
     if (size > 10 * 1024 * 1024) {
-      dispatch(setAlertMessage(t("filesizerror")));
+      dispatch(setAlertMessage(t("docList.filesizerror")));
     }
     try {
-      const result = await api.post(
-        "/document/uploadfromdrive",
-        {
-          fileId: fileData.id,
-          fileName: fileData.name,
-          mimeType: fileData.mimeType,
-          webViewLink: fileData.url,
-          access_token: token,
-        },
-        {
-          onUploadProgress: (e: AxiosProgressEvent) => {
-            if (typeof e.total === "number" && e.total > 0) {
-              let percent = Math.round((e.loaded * 100) / e.total);
-              setUploadProgress(percent);
-            }
-          },
-        }
-      );
-
+      const data = await documentListService.handleDriveUpload(fileData,token,setUploadProgress);
       setUploadProgress(100);
-      UpdateDocumentList(result.data.document);
+      UpdateDocumentList(data.document);
     } catch (err: any) {
       console.error(err);
       setIsUploadModal(false);
-      const errorMsg = err.response?.data?.message || t("uploaddrivefailed");
+      const errorMsg =
+        err.response?.data?.message || t("docList.uploaddrivefailed");
       dispatch(setAlertMessage(errorMsg));
       dispatch(setShowAlert(true));
     }
@@ -161,10 +141,10 @@ export default function GGDriveUpload({
       if (isValid) {
         createGoogleDrivePicker(googleAccessToken);
       } else {
-        googleLogin(); 
+        googleLogin();
       }
     } else {
-      googleLogin(); 
+      googleLogin();
     }
   };
   return (
@@ -174,7 +154,8 @@ export default function GGDriveUpload({
       }}
       className="w-full flex justify-start items-center text-left px-4 py-2 rounded-md hover:bg-gray-100"
     >
-      <IoMdCloudUpload className="w-4 h-4 mr-2" /> {t("Upload from Drive")}
+      <IoMdCloudUpload className="w-4 h-4 mr-2" />{" "}
+      {t("docList.uploadFromDrive")}
     </button>
   );
 }

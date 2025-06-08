@@ -16,10 +16,14 @@ import { DocumentService } from './document.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileSizeValidationPipe } from './pipes/document-validation.pipe';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { ActionGuard } from 'src/auth/actions.guard';
 import { storage } from 'src/cloudinary/cloudinary.storage';
 import * as fs from 'fs';
 import { DocumentPermissionDTO } from './DTO/document_permissionDTO';
 import path from 'path';
+import { Request } from 'express';
+import { UserDTO } from 'src/user/DTO/UserDTO';
+import { CheckAction } from 'src/auth/actions.decorator';
 @Controller('document')
 export class DocumentController {
   private readonly storageDir: string;
@@ -102,6 +106,7 @@ export class DocumentController {
   async getDocumentLazyLoading(
     @Query('id') id: string,
     @Query('sort') sort: string,
+    @NestRequest() req: Request,
   ) {
     let desc: boolean = true;
     if (sort && parseInt(sort, 10) === 1) {
@@ -110,6 +115,7 @@ export class DocumentController {
     const documents = await this.documentService.getDocumentLazyLoading(
       id,
       desc,
+      req.user as UserDTO,
     );
     return {
       status: 'success',
@@ -119,15 +125,18 @@ export class DocumentController {
 
   @UseGuards(JwtAuthGuard)
   @Get('documentcount')
-  async GetDocumentCount() {
-    const document_count = await this.documentService.getDocumentCount();
+  async GetDocumentCount(@NestRequest() req: Request) {
+    const document_count = await this.documentService.getDocumentCountByUser(
+      req.user as UserDTO,
+    );
     return {
       status: 'success',
       count: document_count,
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ActionGuard)
+  @CheckAction('VIEW')
   @Get('documentInfor')
   async GetDocumentInfor(@Query('id') _id: string) {
     const document = await this.documentService.getDocumentInfor(_id);
@@ -136,7 +145,9 @@ export class DocumentController {
       document,
     };
   }
-  @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard,ActionGuard)
+  @CheckAction('VIEW')
   @Patch('setLoadingFirst')
   async SetLoadingFirst(@Query('id') _id: string) {
     await this.documentService.setDocumentLoadingFirst(_id);
@@ -144,7 +155,9 @@ export class DocumentController {
       status: 'success',
     };
   }
-  @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard,ActionGuard)
+  @CheckAction('ADD')
   @Post('addaccesscontrol')
   async AddAcessControl(
     @Query('id') _id: string,
@@ -156,7 +169,8 @@ export class DocumentController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard,ActionGuard)
+  @CheckAction('ADD')
   @Put('updateaccesscontrol')
   async UpdateAccessControl(
     @Query('id') _id: string,
@@ -168,7 +182,8 @@ export class DocumentController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard,ActionGuard)
+  @CheckAction('VIEW')
   @Get('documentpermission')
   async GetDocumentPermission(@Query('id') _id: string) {
     const document_permission =

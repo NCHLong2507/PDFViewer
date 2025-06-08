@@ -3,13 +3,8 @@ import type { AppDispatch, RootState } from "../../../store/store";
 import { useTranslation } from "react-i18next";
 import DocumentPermission from "./DocumentPermission";
 import type { Document } from "../../../interface/document";
-import { useEffect } from "react";
-import {
-  setMatchedUser,
-  setUserAddedList,
-} from "../../../store/shareModalSlice";
-import { isValidEmail } from "../../../pages/Authentication/Authentication";
-import api from "../../../api/axios";
+import { setUserAddedList } from "../../../store/documentDetailSlice/shareModalSlice";
+
 import MatchedUser from "./MatchedUser";
 interface ShareModalBodyProps {
   document: Document;
@@ -30,36 +25,6 @@ export default function ShareModalBody({
   const matchedUser = useSelector(
     (state: RootState) => state.shareModal.matchedUser
   );
-  useEffect(() => {
-    const findUserbyEmail = async () => {
-      const input = emailInput.trim().toLowerCase();
-      if (input === "") {
-        dispatch(setMatchedUser(null));
-      } else {
-        if (isValidEmail(input)) {
-          try {
-            const result = await api.post("/user/find-by-email", {
-              email: input,
-            });
-            dispatch(
-              setMatchedUser(
-                result.data.user || {
-                  name: t("Unregistered User"),
-                  email: input,
-                  picture: "",
-                }
-              )
-            );
-          } catch (err: any) {
-            console.log(err);
-          }
-        } else {
-          dispatch(setMatchedUser(null));
-        }
-      }
-    };
-    findUserbyEmail();
-  }, [emailInput]);
   const handleRemove = (emailtoDelete: string) => {
     const newUserAddedList = userAddedList.filter(
       (email) => email !== emailtoDelete
@@ -74,7 +39,7 @@ export default function ShareModalBody({
         <MatchedUser document={document} />
       ) : userAddedList.length == 0 ? (
         <div className="text-sm text-gray-400">
-          {t("No matching user found")}
+          {t("docDetail.noMatchUser")}
         </div>
       ) : (
         <div>

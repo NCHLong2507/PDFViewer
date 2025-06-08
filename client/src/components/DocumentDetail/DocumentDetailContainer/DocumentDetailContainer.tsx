@@ -6,7 +6,6 @@ import DocumentToolbar from "../DocumentToolbar";
 import ShareModal from "../ShareModal/ShareModal";
 import ShapeAnnotation from "../ShapeAnnotation/ShapeAnnotation";
 import TextAnnotation from "../TextAnnotation.tsx/TextAnnotation";
-import api from "../../../api/axios";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../../store/store";
 import {
@@ -16,14 +15,17 @@ import {
   setShowTextCustomTable,
   setShowShareModal,
   toggleDownloadSignal,
-} from "../../../store/documentViewerSlice";
-import { setIsShapeModified } from "../../../store/shapeAnnotationSlice";
-import { setIsTextModified } from "../../../store/textAnnotationSlice";
+} from "../../../store/documentDetailSlice/documentDetailSlice";
+import { setIsShapeModified } from "../../../store/documentDetailSlice/shapeAnnotationSlice";
+import { setIsTextModified } from "../../../store/documentDetailSlice/textAnnotationSlice";
 import AnnotationButton from "./AnnotationButton";
 import SuccessMessag from "./SuccessMessage";
 import TriangleAnnotationRegister from "./TriangleAnnotationRegister";
-import RegisterAnnotationEvents from "./AnnotationEvents";
-import { get, set } from "idb-keyval";
+import registerAnnotationEvents from "./AnnotationEvents";
+import { saveToCache, loadFromCache } from "../../../utils/indexedDbHelper";
+import { useTranslation } from "react-i18next";
+import LoadingAnimation from "../../Common/LoadingAnimation";
+import documentDetailService from "../../../services/documentDetailService";
 
 interface DocDetailContainerProps {
   document: DocumentDTO;
@@ -37,25 +39,28 @@ export default function DocumentDetailedContainer({
   refetchAction,
   refetchDocument,
 }: DocDetailContainerProps) {
+  const annotWaitingQueue = {};
   const dispatch = useDispatch<AppDispatch>();
   const instanceRef = useRef<any>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const zoomLevel = useSelector((state: RootState) => state.editor.zoomLevel);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const shapeAnnotation = useSelector(
+    (state: RootState) => state.shape.shapeAnnotation
+  );
+  const isUploadLoading = useSelector(
+    (state: RootState) => state.editor.isLoading
+  );
   const showShareModal = useSelector(
     (state: RootState) => state.editor.showShareModal
   );
   const showSuccessPopup = useSelector(
     (state: RootState) => state.editor.showSuccessPopup
   );
-  const opacity = useSelector((state: RootState) => state.shape.opacity);
-  const selectedColor = useSelector(
-    (state: RootState) => state.shape.selectedColor
-  );
-  const stroke = useSelector((state: RootState) => state.shape.stroke);
   const downloadSignal = useSelector(
     (state: RootState) => state.editor.downloadSignal
   );
+  const { t } = useTranslation();
   const shapeToToolMap: Record<string, string> = {
     rectangle: "AnnotationCreateRectangle",
     ellipse: "AnnotationCreateEllipse",
@@ -88,16 +93,23 @@ export default function DocumentDetailedContainer({
     b: number;
     a: number;
   }): string {
+    const tolerance = 2;
+
+    function isCloseEnough(v1: number, v2: number) {
+      return Math.abs(v1 - v2) <= tolerance;
+    }
+
     for (const [name, rgba] of Object.entries(colorNameToRGBA)) {
       if (
-        color.r === rgba.r &&
-        color.g === rgba.g &&
-        color.b === rgba.b &&
+        isCloseEnough(color.r, rgba.r) &&
+        isCloseEnough(color.g, rgba.g) &&
+        isCloseEnough(color.b, rgba.b) &&
         color.a === rgba.a
       ) {
         return name;
       }
     }
+
     return "white";
   }
   useEffect(() => {
@@ -109,80 +121,106 @@ export default function DocumentDetailedContainer({
     dispatch(setIsShapeModified(false));
   }, []);
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    const timeout = setTimeout(async () => {
       if (!viewerRef.current) return;
       if (instanceRef.current || !document.fileUrl) return;
+      let docBlob = await loadFromCache(document._id);
 
+      if (!docBlob) {
+        const res = await fetch(document.fileUrl);
+        const arrayBuffer = await res.arrayBuffer();
+        docBlob = new Blob([arrayBuffer], { type: "application/pdf" });
+        saveToCache(document._id, docBlob);
+      }
       WebViewer(
         {
           path: "/webviewer",
-          initialDoc: document.fileUrl,
         },
         viewerRef.current
       ).then((_instance) => {
         try {
           instanceRef.current = _instance;
           const { UI, Core } = _instance;
+          UI.loadDocument(docBlob);
           const { annotationManager, documentViewer } = Core;
-          api
-            .get(`/annotation/load-xfdf?id=${document._id}`)
-            .then((res) => {
-              if (res.data.status === "success" && res.data.xfdf) {
-                const xfdf = res.data.xfdf;
-                documentViewer.addEventListener("documentLoaded", () => {
-                  try {
-                    annotationManager.importAnnotations(xfdf);
-                  } catch (error) {
-                    console.error("Import XFDF error:", error);
-                  }
-                });
+          documentDetailService.getAnnotation(document._id).then((res) => {
+            if (res.data.status === "success" && res.data.xfdf) {
+              const xfdf = res.data.xfdf;
+              const tryImportXFDF = () => {
+                try {
+                  annotationManager.importAnnotations(xfdf);
+                } catch (error) {
+                  console.error("Import XFDF error:", error);
+                }
+              };
+
+              if (documentViewer.getDocument()) {
+                tryImportXFDF();
               } else {
-                console.warn("No XFDF or status not success");
+                documentViewer.addEventListener(
+                  "documentLoaded",
+                  tryImportXFDF
+                );
               }
-            })
-            .catch((err) => {
-              console.error("Failed to load XFDF from server:", err);
-            });
+            } else {
+              console.warn("No XFDF or status not success");
+            }
+          });
           TriangleAnnotationRegister(
             instanceRef,
-            opacity,
-            stroke,
-            selectedColor,
+            shapeAnnotation.opacity,
+            shapeAnnotation.stroke,
+            shapeAnnotation.selectedColor,
+            shapeAnnotation.strokeColor,
             getColorFromName
           );
+          if (!action?.includes("EDIT")) {
+            annotationManager.enableReadOnlyMode();
+          }
           const updatePageInfo = () => {
             const pagecount = documentViewer.getPageCount();
             dispatch(setPageCount(pagecount));
           };
           documentViewer.addEventListener("documentLoaded", () => {
+            if (!document.isLoadingFirst) {
+              documentDetailService.setLoadingFirst(document._id);
+              refetchDocument();
+            }
             updatePageInfo();
             setIsLoading(false);
             UI.setToolMode("AnnotationEdit");
             UI.setMaxZoomLevel(2);
             UI.setMinZoomLevel(0.5);
             UI.setZoomLevel(zoomLevel);
+            UI.disableElements([
+              "default-top-header",
+              "tools-header",
+              "page-nav-floating-header",
+              "annotationCommentButton",
+              "annotationStyleEditButton",
+              "linkButton",
+              "annotationDeleteButton",
+              "openAlignmentButton",
+              "panToolButton",
+            ]);
+            UI.enableElements(["richTextPopup"]);
           });
-          RegisterAnnotationEvents(
-            annotationManager,
-            instanceRef,
-            getNameFromColor,
-            document._id,
-            dispatch,
-            document
-          );
+          if (action?.includes("EDIT")) {
+            registerAnnotationEvents(
+              annotationManager,
+              instanceRef,
+              getNameFromColor,
+              document._id,
+              dispatch,
+              document,
+              annotWaitingQueue,
+              refetchDocument
+            );
+          }
+
           if (documentViewer.getDocument()) {
             updatePageInfo();
           }
-          UI.disableElements([
-            "default-top-header",
-            "tools-header",
-            "page-nav-floating-header",
-            "annotationCommentButton",
-            "annotationStyleEditButton",
-            "linkButton",
-            "annotationDeleteButton",
-          ]);
-          UI.enableElements(["richTextPopup"]);
         } catch (err) {
           console.error("Caught error in WebViewer setup:", err);
         }
@@ -207,6 +245,7 @@ export default function DocumentDetailedContainer({
       }
     }
   }
+
   useEffect(() => {
     if (downloadSignal) {
       const handleDownloadPDFWithXFDF = async () => {
@@ -237,15 +276,9 @@ export default function DocumentDetailedContainer({
     getColorFromName,
     DeleteAnnotation,
   };
-  useEffect(() => {
-    return () => {
-      if (document.isLoadingFirst === false) {
-        api.patch(`/document/setLoadingFirst?id=${document._id}`);
-      }
-    };
-  }, []);
   return (
     <div className="w-full h-[648px] flex flex-col justify-center items-center rounded-xl bg-gray-100 border-[1px] border-[rgba(217,217,217,1)]">
+      {isUploadLoading && <LoadingAnimation className="w-10 h-10 border-4 border-yellow-400" position="absolute top-4"/>}
       <div
         id="viewer-container"
         className="w-full h-full flex flex-col justify-center items-center overflow-auto scrollbar-hidden relative" // Thêm relative ở đây
@@ -266,7 +299,7 @@ export default function DocumentDetailedContainer({
                 style={{ animationDelay: "0.3s" }}
               ></div>
             </div>
-            <p className="text-gray-700 mt-4">Đang tải tài liệu...</p>
+            <p className="text-gray-700 mt-4">{t("docDetail.isLoading")}</p>
           </div>
         )}
 
@@ -287,13 +320,12 @@ export default function DocumentDetailedContainer({
         action={action}
       />
       <DocumentToolbar instanceRef={instanceRef} />
-      {showShareModal && (
-        <ShareModal
-          document={document}
-          action={action}
-          refetchDocument={refetchDocument}
-        />
-      )}
+      <ShareModal
+        document={document}
+        action={action}
+        refetchDocument={refetchDocument}
+        isVisible={showShareModal}
+      />
       {showSuccessPopup && <SuccessMessag />}
     </div>
   );

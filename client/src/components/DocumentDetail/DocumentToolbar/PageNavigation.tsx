@@ -25,7 +25,7 @@ export default function PageNavigation({instanceRef}: PageNavigationProps) {
     const current = docViewer.getCurrentPage();
     const max = docViewer.getPageCount();
     if (current < max) {
-      docViewer.setCurrentPage(current + 1, true);
+      docViewer.setCurrentPage(current + 1, false);
     }
   }
 
@@ -36,7 +36,7 @@ export default function PageNavigation({instanceRef}: PageNavigationProps) {
     const docViewer = instance.Core.documentViewer;
     const current = docViewer.getCurrentPage();
     if (current > 1) {
-      docViewer.setCurrentPage(current - 1, true);
+      docViewer.setCurrentPage(current - 1, false);
     }
   }
 
@@ -47,7 +47,7 @@ export default function PageNavigation({instanceRef}: PageNavigationProps) {
     const current = docViewer.getCurrentPage();
     const max = docViewer.getPageCount();
     if (page <= max && current >= 1) {
-      docViewer.setCurrentPage(page, true);
+      docViewer.setCurrentPage(page, false);
       setCurrentPage(page);
     }
   }

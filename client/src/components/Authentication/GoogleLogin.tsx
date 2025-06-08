@@ -3,6 +3,9 @@ import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../store/store";
+import { setIsLoading } from "../../store/documentDetailSlice/documentDetailSlice";
 interface GoogleLoginProps {
   setGoogleError: (error: boolean) => void;
   setGoogleErrorMesssage: (message: string) => void;
@@ -15,36 +18,50 @@ export default function GoogleLogin({
 }: GoogleLoginProps) {
   const { googleLogin, setUserInfor } = useAuth();
   const { t } = useTranslation();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   const loginGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setGoogleError(false);
-      const result = await googleLogin(
-        tokenResponse.access_token,
-        invitation_token
-      );
-      if (result && result.success) {
-        setUserInfor(result.user);
-        if (result.directURL) {
-          const redirectPath = result.directURL;
-          localStorage.removeItem("redirectAfterLogin");
-          navigate(redirectPath, { replace: true });
+
+      try {
+        dispatch(setIsLoading(true));
+        const result = await googleLogin(
+          tokenResponse.access_token,
+          invitation_token
+        );
+
+        if (result && result.success) {
+          setUserInfor(result.user);
+          if (result.directURL) {
+            const redirectPath = result.directURL;
+            localStorage.removeItem("redirectAfterLogin");
+            navigate(redirectPath, { replace: true });
+          } else {
+            const redirectPath =
+              localStorage.getItem("redirectAfterLogin") ||
+              "/document/documentlist";
+            localStorage.removeItem("redirectAfterLogin");
+            navigate(redirectPath, { replace: true });
+          }
         } else {
-          const redirectPath =
-            localStorage.getItem("redirectAfterLogin") ||
-            "/document/documentlist";
-          localStorage.removeItem("redirectAfterLogin");
-          navigate(redirectPath, { replace: true });
+          if (result && result.statusCode === 409) {
+            setGoogleError(true);
+            setGoogleErrorMesssage(t("auth.loginGoogleError"));
+          } else if (result && result.statusCode === 403) {
+            setGoogleError(true);
+            setGoogleErrorMesssage(t("auth.errorEmailGoogleSignup"));
+          } else {
+            setGoogleError(true);
+            setGoogleErrorMesssage(result.message as string);
+          }
         }
-      } else {
-        if (result && result.statusCode === 409) {
-          setGoogleError(true);
-          setGoogleErrorMesssage(t("auth.loginGoogleError"));
-        } else {
-          setGoogleError(true);
-          setGoogleErrorMesssage(result.message as string);
-        }
+      } catch (error) {
+        setGoogleError(true);
+        setGoogleErrorMesssage(t("auth.googleLoginFailed"));
+      } finally {
+        dispatch(setIsLoading(false));
       }
     },
     onError: (errorResponse) => {

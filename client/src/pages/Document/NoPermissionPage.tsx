@@ -13,13 +13,13 @@ export default function NoPermissionPage() {
           <img src={EmptyNetwork} className="w-[270px] h-[270px]"></img>
           <div className='flex flex-col gap-3'>
             <div className='flex items-center justify-start'>
-              <p className='font-[700] leading-[1.2] text-5xl'>{t("Oops,")}</p>
+              <p className='font-[700] leading-[1.2] text-5xl'>{t("docList.Oops")}</p>
             </div>
-            <p className='leading-[1.2] text-3xl'>{t("You don't have permisson to access this file")}</p>
-            <p>{t("You are signed in as")} <span className='inline font-bold'>{userInfor?.email}</span></p>
+            <p className='leading-[1.2] text-3xl'>{t("docList.noPermissionError")}</p>
+            <p>{t("docList.signedAs")} <span className='inline font-bold'>{userInfor?.email}</span></p>
 
-            <button onClick={()=>navigate('/document/documentlist') } className="w-[190px] h-[40px] rounded-[8px] border-[1px] font-[600] text-center items-center p-[8px] bg-gray-300 hover:bg-gray-400 mt-10">
-             {t("Back to my Document")}
+            <button onClick={()=>navigate('/document/documentlist',{replace:true}) } className="w-[190px] h-[40px] rounded-[8px] border-[1px] font-[600] text-center items-center p-[8px] bg-gray-300 hover:bg-gray-400 mt-10">
+             {t("docList.backToDocButton")}
             </button>
           </div>
           

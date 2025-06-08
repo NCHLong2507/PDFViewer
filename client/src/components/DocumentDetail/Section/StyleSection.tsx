@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 interface StyleSectionProps {
   style: string;
   setStyle: (style: string) => void;
@@ -5,10 +6,19 @@ interface StyleSectionProps {
   fillName: string;
   strokeName: string;
 }
-export default function StyleSection({style, setStyle,sectionName,fillName,strokeName}: StyleSectionProps) {
+export default function StyleSection({
+  style,
+  setStyle,
+  sectionName,
+  fillName,
+  strokeName,
+}: StyleSectionProps) {
+  const { t } = useTranslation();
   return (
     <div className="w-full gap-1 flex flex-col">
-      <h3 className="text-sm font-semibold text-gray-700 mb-2">{sectionName}</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-2">
+        {t(`docDetail.sectionName.${sectionName}`, { defaultValue: sectionName })}
+      </h3>
       <div className="w-full flex bg-white rounded-full mb-1">
         <button
           className={`w-[50%] px-4 py-2 rounded-full text-sm  ${
@@ -16,7 +26,7 @@ export default function StyleSection({style, setStyle,sectionName,fillName,strok
           } hover:bg-gray-200 focus:outline-none`}
           onClick={() => setStyle("fill")}
         >
-          {fillName}
+          {t(`docDetail.fillName.${fillName}`, { defaultValue: fillName })}
         </button>
         <button
           className={`w-[50%] px-4 py-2 rounded-full text-sm  ${
@@ -24,7 +34,9 @@ export default function StyleSection({style, setStyle,sectionName,fillName,strok
           } hover:bg-gray-200 focus:outline-none`}
           onClick={() => setStyle("stroke")}
         >
-          {strokeName}
+          {t(`docDetail.strokeName.${strokeName}`, {
+            defaultValue: strokeName,
+          })}
         </button>
       </div>
     </div>

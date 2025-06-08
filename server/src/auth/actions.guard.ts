@@ -11,27 +11,36 @@ import { DocumentService } from 'src/document/document.service';
 export class ActionGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private readonly documentService: DocumentService
+    private readonly documentService: DocumentService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const action = this.reflector.get<string>(CHECK_ACTION_KEY, context.getHandler());
-    if (!action) return true; 
+    const requiredActions = this.reflector.get<string[]>(
+      CHECK_ACTION_KEY,
+      context.getHandler(),
+    );
+    if (!requiredActions || requiredActions.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
     const documentId = request.query.id || request.params.id;
-
     if (!user || !documentId) {
       throw new ForbiddenException('Missing user or document ID');
     }
+    const userActions = await this.documentService.getDocumentPermissionPerUser(
+      documentId,
+      user.email,
+    );
 
-    const actions = await this.documentService.getDocumentPermissionPerUser(user.id, documentId);
+    const hasPermission = requiredActions.some((action) =>
+      userActions.includes(action),
+    );
 
-    if (!actions.includes(action)) {
-      throw new ForbiddenException('You do not have permission to perform this action');
+    if (!hasPermission) {
+      throw new ForbiddenException(
+        'You do not have permission to perform this action',
+      );
     }
-
     return true;
   }
 }

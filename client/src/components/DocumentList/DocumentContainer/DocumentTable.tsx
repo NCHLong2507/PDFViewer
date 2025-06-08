@@ -6,7 +6,10 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import { useLocation, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { setId, setSortOrder } from "../../../store/documentListSlice";
+import {
+  setId,
+  setSortOrder,
+} from "../../../store/documentListSlice/documentListSlice";
 import type { Document } from "../../../interface/document";
 import type { QueryObserverResult } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -24,6 +27,7 @@ export default function DocumentTalbe({
   const documentList = useSelector(
     (state: RootState) => state.docList.documentList
   );
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -46,12 +50,16 @@ export default function DocumentTalbe({
     dispatch(setId(0));
   };
   const handleOpenDocument = (doc: Document) => {
+    if (doc.isLoadingFirst) {
+      sessionStorage.removeItem("IsLoading");
+    } else {
+      sessionStorage.setItem("IsLoading", "false");
+    }
     navigate(`/document/documentdetailed?id=${doc._id}`, { state: { doc } });
   };
 
   useEffect(() => {
     if (location.state?.refetch) {
-      console.log("Refetching documents due to state change");
       refectInitialDocuments();
     }
   }, [location.state]);
@@ -63,19 +71,19 @@ export default function DocumentTalbe({
             scope="col"
             className="w-[946px] h-[60px] px-8 py-2 text-left text-base font-normal tracking-wider"
           >
-            {t("File name")}
+            {t("docList.fileName")}
           </th>
           <th
             scope="col"
             className="w-[460px] h-[48px] px-8 py-2 text-left text-base font-normal tracking-wider"
           >
-            {t("Document owner")}
+            {t("docList.owner")}
           </th>
           <th
             scope="col"
             className="px-8 h-[60px] py-2 text-left text-base font-normal relative tracking-wider flex items-center"
           >
-            {t("Last updated")}
+            {t("docList.lastUpdated")}
             <div className="flex flex-col justify-center items-center ml-1">
               <IoMdArrowDropup
                 onClick={handleAscSort}
@@ -120,6 +128,7 @@ export default function DocumentTalbe({
             </td>
           </tr>
         ))}
+        
       </tbody>
     </table>
   );

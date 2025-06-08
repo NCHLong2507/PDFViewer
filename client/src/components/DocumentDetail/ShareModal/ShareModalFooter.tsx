@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
-import api from "../../../api/axios";
 import {
+  setIsLoading,
   setShowShareModal,
   setShowSuccessPopup,
-} from "../../../store/documentViewerSlice";
+} from "../../../store/documentDetailSlice/documentDetailSlice";
 import type { Document } from "../../../interface/document";
 import {
   setEmailInput,
   setMatchedUser,
   setUserAddedList,
   setModified,
-} from "../../../store/shareModalSlice";
+} from "../../../store/documentDetailSlice/shareModalSlice";
 import { useTranslation } from "react-i18next";
 import type { QueryObserverResult } from "@tanstack/react-query";
+import { fetchDocumentPermission } from "../../../store/documentDetailSlice/shareModalSlice";
+import documentDetailService from "../../../services/documentDetailService";
 interface ShareModalFooterProps {
   document: Document;
   action: string[] | undefined;
@@ -40,22 +42,13 @@ export default function ShareModalFooter({
     try {
       let result;
       dispatch(setShowShareModal(false));
-
+      dispatch(setIsLoading(true));
       if (userAddedList.length > 0) {
-        result = await api.post(
-          `/document/addaccesscontrol?id=${document._id}`,
-          {
-            emailList: userAddedList,
-            role: roleAdded,
-          }
-        );
+        result = await documentDetailService.addAccessControl(document._id,userAddedList,roleAdded);
       } else if (modified.length > 0) {
-        result = await api.put(
-          `/document/updateaccesscontrol?id=${document._id}`,
-          modified
-        );
+        result = await documentDetailService.updateAccessControl(document._id,modified);
+        dispatch(fetchDocumentPermission(document._id));
       }
-
       if (result && result.data.status === "success") {
         await refetchDocument();
         dispatch(setEmailInput(""));
@@ -69,6 +62,8 @@ export default function ShareModalFooter({
       }
     } catch (err) {
       console.error("Error in handleSaveAccess:", err);
+    } finally {
+      dispatch(setIsLoading(false));
     }
   };
   const handleTurnDownModal = () => {
@@ -89,8 +84,8 @@ export default function ShareModalFooter({
               onChange={(e) => setRoleAdded(e.target.value)}
               className="ml-auto mr-1 rounded-md px-3 py-1.5 text-sm text-gray-700 bg-white shadow-sm"
             >
-              <option value="Viewer">{t("Can view")}</option>
-              <option value="Editor">{t("Can edit")}</option>
+              <option value="Viewer">{t("docDetail.canView")}</option>
+              <option value="Editor">{t("docDetail.canEdit")}</option>
             </select>
           </div>
         )}
@@ -100,7 +95,7 @@ export default function ShareModalFooter({
           onClick={handleTurnDownModal}
           className="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-100"
         >
-          {t("Cancel")}
+          {t("docDetail.cancel")}
         </button>
         <button
           className="px-4 py-2 rounded-md bg-black text-white text-sm hover:bg-gray-800"
@@ -108,8 +103,8 @@ export default function ShareModalFooter({
           disabled={!action?.includes("ADD")}
         >
           {emailInput.trim().length > 0 || userAddedList.length > 0
-            ? t("Add")
-            : t("Save")}
+            ? t("docDetail.add")
+            : t("docDetail.save")}
         </button>
       </div>
     </div>
