@@ -40,7 +40,15 @@
     "resendVerificationEmail": "Resend Verification Link",
     "invitationExpired": "Expired or Invalid Invitation",
     "invalidInvitation": "This invitation is no longer valid or has been removed",
-    "newInvitation": "Please contact the sender for a new invitation."
+    "newInvitation": "Please contact the sender for a new invitation.",
+    "existingEmail": {
+      "This email address is currently being used with Google account. Please sign in with Google.": "This email address is currently being used with Google account. Please sign in with Google.",
+      "Existing email": "Existing email"
+    },
+    "expiredLink": "Verification link has expired",
+    "newVerificationLink": "Your verification link has expired. Please request a new verification email.",
+    "resendVerifyEmail": "Resend email",
+    "noEmailReceived": "Didn't receive the email? Check your spam folder or try again in a few minutes."
   },
   "docDetail": {
     "isLoading": "Document loading...",

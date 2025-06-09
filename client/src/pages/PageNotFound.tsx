@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import NavBar from "../components/Navbar";
+import NavBar from "../components/Navbar/Navbar";
 import NotFoundImage from "../assets/NotFound.jpg";
 import { useTranslation } from "react-i18next";
 const NotFound: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const handleGoHome = () => {
-    navigate("/document/documentlist",{replace:true});
+    navigate("/document/documentlist", { replace: true });
   };
 
   return (

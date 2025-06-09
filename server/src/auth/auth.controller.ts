@@ -28,7 +28,6 @@ export class AuthController {
     private readonly jwtService: JwtService,
     private readonly documentService: DocumentService,
   ) {}
-
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@NestRequest() req, @Res({ passthrough: true }) res: Response) {
@@ -56,6 +55,7 @@ export class AuthController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@NestRequest() req, @Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');

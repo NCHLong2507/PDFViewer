@@ -43,7 +43,7 @@ export default function NavBarTool() {
   return (
     <>
       {userInfor && (
-        <div className="flex-1 h-full flex justify-end items-center gap-[32px]">
+        <div className="flex-1 h-full flex justify-end items-center ">
           <div className="w-full h-auto pr-[24px] gap-[16px] flex justify-end items-center">
             <div className="h-full min-w-[280px] flex justify-end items-center gap-[16px]">
               <div className="leading-[1.4] text-base text-[rgba(30, 30, 30, 1)]">

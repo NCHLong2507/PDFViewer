@@ -40,7 +40,15 @@
     "resendVerificationEmail": "Gửi lại liên kết xác minh",
     "invitationExpired": "Thư mời hết hạn",
     "invalidInvitation": "Liên kết lời mời này không còn hiệu lực nữa.",
-    "newInvitation": "Vui lòng liên hệ với người gửi để xin lời mời mới."
+    "newInvitation": "Vui lòng liên hệ với người gửi để xin lời mời mới.",
+    "existingEmail": {
+      "This email address is currently being used with Google account. Please sign in with Google.": "Địa chỉ email này đang được sử dụng để đăng nhập với Google. Vui lòng đăng nhập với Google",
+      "Existing email": "Email bị trùng"
+    },
+    "expiredLink": "Liên kết xác minh đã hết hạn",
+    "newVerificationLink": "Liên kết xác minh của bạn đã hết hạn. Vui lòng yêu cầu gửi lại email xác minh mới.",
+    "resendVerifyEmail": "Gửi lại email",
+    "noEmailReceived": "Không nhận được email? Kiểm tra thư mục spam hoặc thử lại sau ít phút."
   },
   "docDetail": {
     "isLoading": "Đang tải tài liệu...",

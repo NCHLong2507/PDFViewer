@@ -76,7 +76,7 @@ export default function DocumentPermission({
             <PiUserCircleThin className="w-10 h-10" />
           )}
           <div>
-            <p className="text-sm text-gray-900 font-medium">
+            <p className={`text-sm ${user.user.name === "Unregistered User"? `text-red-700`: `text-gray-900`}  font-medium`}>
               {user.user.name}
             </p>
             <p className="text-sm text-gray-500">{user.user.email}</p>

@@ -84,7 +84,9 @@ export default function SignupForm({
       if (result && result.success) {
         navigate(`/verifyemail?user_id=${result.user_id}`);
       } else if (result.statusCode === 409) {
-        emailField.setError(result.message as string);
+        const message = result.message;
+        console.log(message)
+        emailField.setError(t(`auth.existingEmail.${message}`));
       } else if (result.statusCode === 403) {
         console.log(result.message);
         const email = result.message ? result.message.split(" ")[6] : "";
