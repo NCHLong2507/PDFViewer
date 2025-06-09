@@ -45,7 +45,16 @@ export async function saveToCache(id: string, fileBlob: Blob): Promise<void> {
 export async function loadFromCache(id: string): Promise<Blob | null> {
   const db = await getDB();
   const entry = await db.get(STORE_NAME, id);
-  return entry?.fileBlob || null;
+  if (entry) {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    await store.put({ ...entry, timestamp: Date.now() });
+    await tx.done;
+
+    return entry.fileBlob;
+  }
+
+  return null;
 }
 
 export async function clearCache(): Promise<void> {

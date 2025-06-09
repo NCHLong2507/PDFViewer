@@ -18,6 +18,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { Response, Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { DocumentService } from 'src/document/document.service';
+import { boolean } from 'yargs';
 
 @Controller('auth')
 export class AuthController {
@@ -72,9 +73,13 @@ export class AuthController {
   ) {
     const { name, email } = body;
     const user_id = await this.authService.signup(body, invitation_token);
+    const verify_token = await this.jwtService.signAsync(
+      {},
+      { secret: process.env.JWT_VERIFICATION_KEY, expiresIn: '24h' },
+    );
     const verificationLink = invitation_token
-      ? `http://localhost:3000/auth/verifyUser?user_id=${user_id}&invitation_token=${invitation_token}`
-      : `http://localhost:3000/auth/verifyUser?user_id=${user_id}`;
+      ? `http://localhost:3000/auth/verifyUser?user_id=${user_id}&verify_token=${verify_token}&invitation_token=${invitation_token}`
+      : `http://localhost:3000/auth/verifyUser?user_id=${user_id}&verify_token=${verify_token}`;
     const mailoptions = {
       subject: 'Verification email',
       template: 'signup-confirmation-email',
@@ -99,13 +104,32 @@ export class AuthController {
   @Get('verifyUser')
   async verifyUser(
     @Query('user_id') _id: string,
+    @Query('verify_token') verify_token: string,
     @Query('invitation_token') invitation_token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     if (!_id) {
       throw new BadRequestException('Id is required');
     }
+    try {
+      if (verify_token) {
+        await this.jwtService.verifyAsync(verify_token, {
+          secret: process.env.JWT_VERIFICATION_KEY,
+        });
+      }
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.redirect(
+          `http://localhost:5173/invalidVerifyToken?user_id=${_id}`,
+        );
+      }
+      throw new BadRequestException('Invalid token');
+    }
+
     const user = await this.authService.verifyUser(_id);
+    if (typeof user === 'boolean') {
+      return res.redirect(`http://localhost:5173/document/documentlist`);
+    }
     const access_token = await this.authService.signToken(user);
     const refresh_token = await this.authService.signToken(
       user,
@@ -128,15 +152,15 @@ export class AuthController {
       const result =
         await this.documentService.verifyInvitationToken(invitation_token);
       if (result && result.status) {
-        res.redirect(
+        return res.redirect(
           `http://localhost:5173/document/documentdetailed?id=${result.documentID}`,
         );
       } else if (result && !result.status) {
-        res.redirect(`http://localhost:5173/invalidToken`);
+        return res.redirect(`http://localhost:5173/invalidToken`);
       }
     }
     const directURL = 'http://localhost:5173/successverifyemail';
-    res.redirect(directURL);
+    return res.redirect(directURL);
   }
 
   @Get('refresh')
@@ -224,17 +248,20 @@ export class AuthController {
       documentName?: string;
       email?: string;
     } | null = null;
-    if (invitation_token) {
-      result =
-        await this.documentService.verifyInvitationToken(invitation_token);
-    }
-    const emailChecked = result ? result.email : null;
+
+    const emailChecked = null;
     let user = await this.authService.GoogleLogin(
       gg_access_token,
       emailChecked,
     );
     if (!user) {
       user = await this.authService.GoogleSignup(gg_access_token, emailChecked);
+    }
+    if (invitation_token) {
+      result = await this.documentService.verifyInvitationToken(
+        invitation_token,
+        user.email,
+      );
     }
     const access_token = await this.authService.signToken(user);
     const refresh_token = await this.authService.signToken(

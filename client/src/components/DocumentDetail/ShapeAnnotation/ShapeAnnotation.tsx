@@ -7,7 +7,6 @@ import StyleSection from "../Section/StyleSection";
 import FillStrokeSection from "../Section/FillStrokeSection";
 import DeleteButton from "../Section/DeleteButton";
 import { setShapeAnnotation, setStyle } from "../../../store/documentDetailSlice/shapeAnnotationSlice";
-import { stroke } from "pdf-lib";
 
 interface ShapeAnnotaionProps {
   instanceRef: React.RefObject<any>;
@@ -29,14 +28,14 @@ export default function ShapeAnnotation({
   const dispatch = useDispatch<AppDispatch>();
 
   const showShapeCustomTable = useSelector(
-    (state: RootState) => state.editor.showShapeCustomTable
+    (state: RootState) => state.docDetail.editor.showShapeCustomTable
   );
-  const style = useSelector((state: RootState) => state.shape.style);
+  const style = useSelector((state: RootState) => state.docDetail.shape.style);
   const shapeAnnotation = useSelector(
-    (state: RootState) => state.shape.shapeAnnotation
+    (state: RootState) => state.docDetail.shape.shapeAnnotation
   );
   const isShapeModified = useSelector(
-    (state: RootState) => state.shape.isShapeModified
+    (state: RootState) => state.docDetail.shape.isShapeModified
   );
 
   useEffect(() => {

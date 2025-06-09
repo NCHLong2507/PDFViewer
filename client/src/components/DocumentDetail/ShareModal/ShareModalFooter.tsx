@@ -30,11 +30,11 @@ export default function ShareModalFooter({
 }: ShareModalFooterProps) {
   const [roleAdded, setRoleAdded] = useState("Viewer");
   const userAddedList = useSelector(
-    (state: RootState) => state.shareModal.userAddedList
+    (state: RootState) => state.docDetail.shareModal.userAddedList
   );
-  const modified = useSelector((state: RootState) => state.shareModal.modified);
+  const modified = useSelector((state: RootState) => state.docDetail.shareModal.modified);
   const emailInput = useSelector(
-    (state: RootState) => state.shareModal.emailInput
+    (state: RootState) => state.docDetail.shareModal.emailInput
   );
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();

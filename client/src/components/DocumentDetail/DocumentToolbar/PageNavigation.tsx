@@ -14,7 +14,7 @@ interface PageNavigationProps {
 
 export default function PageNavigation({instanceRef}: PageNavigationProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageCount = useSelector((state: RootState) => state.editor.pageCount);
+  const pageCount = useSelector((state: RootState) => state.docDetail.editor.pageCount);
   const [inputPage, setInputPage] = useState("1");
 
   function goNextPage() {

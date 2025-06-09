@@ -7,7 +7,10 @@ import StyleSection from "../Section/StyleSection";
 import FillStrokeSection from "../Section/FillStrokeSection";
 import TextColorSection from "./TextStyleSection";
 import type { Core } from "@pdftron/webviewer";
-import { setFrameStyle, setTextAnnotation } from "../../../store/documentDetailSlice/textAnnotationSlice";
+import {
+  setFrameStyle,
+  setTextAnnotation,
+} from "../../../store/documentDetailSlice/textAnnotationSlice";
 interface TextAnnotationProps {
   instanceRef: React.RefObject<any>;
   getColorFromName: (colorName: string) => {
@@ -25,14 +28,14 @@ export default function TextAnnotation({
 }: TextAnnotationProps) {
   const dispatch = useDispatch<AppDispatch>();
   const textAnnotation = useSelector(
-    (state: RootState) => state.text.textAnnotation
+    (state: RootState) => state.docDetail.text.textAnnotation
   );
-  const frameStyle = useSelector((state: RootState) => state.text.frameStyle);
+  const frameStyle = useSelector((state: RootState) => state.docDetail.text.frameStyle);
   const isTextModified = useSelector(
-    (state: RootState) => state.text.isTextModified
+    (state: RootState) => state.docDetail.text.isTextModified
   );
   const showTextCustomTable = useSelector(
-    (state: RootState) => state.editor.showTextCustomTable
+    (state: RootState) => state.docDetail.editor.showTextCustomTable
   );
   function setColor(
     targetColor: Core.Annotations.Color,
@@ -113,7 +116,9 @@ export default function TextAnnotation({
       id="DocumentTextTool"
       className={`right-22 bottom-45 absolute ${
         showTextCustomTable ? "flex" : "opacity-0 pointer-events-none absolute"
-      } justify-between flex-col bg-gray-100 border-1 border-gray-300 rounded-lg shadow-2xl w-[320px] ${!isTextModified? `min-h-[300px]`: `max-h-[380px]`} z-50`}
+      } justify-between flex-col bg-gray-100 border-1 border-gray-300 rounded-lg shadow-2xl w-[320px] ${
+        !isTextModified ? `min-h-[300px]` : `max-h-[380px]`
+      } z-50`}
     >
       <div className="p-4">
         <TextColorSection />
@@ -128,17 +133,25 @@ export default function TextAnnotation({
 
         <FillStrokeSection
           style={frameStyle}
-          setFillColor={(value: string) =>dispatch(setTextAnnotation({ textFillColor: value }))}
+          setFillColor={(value: string) =>
+            dispatch(setTextAnnotation({ textFillColor: value }))
+          }
           fillColor={textAnnotation.textFillColor}
           stroke={textAnnotation.textFillBorder}
-          setStroke={(value: number) =>dispatch(setTextAnnotation({ textFillBorder: value }))}
-          setStrokeColor={(value: string) => dispatch(setTextAnnotation({ textStrokeColor: value }))}
+          setStroke={(value: number) =>
+            dispatch(setTextAnnotation({ textFillBorder: value }))
+          }
+          setStrokeColor={(value: string) =>
+            dispatch(setTextAnnotation({ textStrokeColor: value }))
+          }
           strokeColor={textAnnotation.textStrokeColor}
         />
 
         <OpacitySection
           opacity={textAnnotation.textFillOpacity}
-          setOpacity={(value: number) => dispatch(setTextAnnotation({textFillOpacity:value}))}
+          setOpacity={(value: number) =>
+            dispatch(setTextAnnotation({ textFillOpacity: value }))
+          }
         />
       </div>
       {isTextModified && <DeleteButton DeleteAnnotation={DeleteAnnotation} />}

@@ -17,13 +17,13 @@ export default function ShareModalBody({
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const emailInput = useSelector(
-    (state: RootState) => state.shareModal.emailInput
+    (state: RootState) => state.docDetail.shareModal.emailInput
   );
   const userAddedList = useSelector(
-    (state: RootState) => state.shareModal.userAddedList
+    (state: RootState) => state.docDetail.shareModal.userAddedList
   );
   const matchedUser = useSelector(
-    (state: RootState) => state.shareModal.matchedUser
+    (state: RootState) => state.docDetail.shareModal.matchedUser
   );
   const handleRemove = (emailtoDelete: string) => {
     const newUserAddedList = userAddedList.filter(

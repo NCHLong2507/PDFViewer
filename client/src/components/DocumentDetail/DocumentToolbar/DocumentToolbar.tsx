@@ -11,7 +11,7 @@ interface DocumentToolbarProps {
 }
 export default function DocumentToolbar({ instanceRef }: DocumentToolbarProps) {
   const isChangeSaved = useSelector(
-    (state: RootState) => state.editor.isChangeSaved
+    (state: RootState) => state.docDetail.editor.isChangeSaved
   );
   const {t} = useTranslation();
   const dispatch = useDispatch<AppDispatch>();

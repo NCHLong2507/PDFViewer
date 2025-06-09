@@ -3,8 +3,8 @@ import documentListReducer from "./documentListSlice";
 import documentDetailReducer from "./documentDetailSlice";
 export const store = configureStore({
   reducer: {
-    ...documentListReducer,
-    ...documentDetailReducer,
+    docList: documentListReducer,
+    docDetail: documentDetailReducer,
   },
 });
 

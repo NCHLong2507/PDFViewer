@@ -19,7 +19,7 @@ const NotFound: React.FC = () => {
           <p className="mt-4 text-3xl font-bold text-gray-800">
             {t("docList.pageNotFound")}
           </p>
-          <p className="mt-2 text-gray-600">{t("pageremoved")}</p>
+          <p className="mt-2 text-gray-600">{t("docList.pageremoved")}</p>
           <button
             onClick={handleGoHome}
             className="mt-6 px-6 py-2 hover:bg-[#e6b800] font-bold bg-[rgba(245,199,49,1)] text-white rounded-lg shadow transition"

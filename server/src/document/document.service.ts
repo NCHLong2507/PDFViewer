@@ -195,12 +195,32 @@ export class DocumentService {
       .find({ document: documentID })
       .populate('user', '_id name email picture')
       .lean();
+    const unregisteredCollaborator = await this.documentInvitationModel
+      .find({ document: documentID, status: 'pending' })
+      .select('_id email role')
+      .lean();
+    const transformedUnregistered = unregisteredCollaborator.map((collab) => ({
+      user: {
+        _id: collab._id,
+        name: 'Unregistered User',
+        email: collab.email,
+        picture: '',
+      },
+      role: collab.role,
+    }));
     const collaboratorDTO = plainToInstance(
       DocumentPermissionDTO,
       collaborator,
+      {
+        excludeExtraneousValues: true,
+      },
+    );
+    const unregisteredDTO = plainToInstance(
+      DocumentPermissionDTO,
+      transformedUnregistered,
       { excludeExtraneousValues: true },
     );
-    return collaboratorDTO;
+    return [...collaboratorDTO, ...unregisteredDTO];
   }
 
   async UpdateDocumentAcessControl(
@@ -224,29 +244,51 @@ export class DocumentService {
       .find({ document: documentID })
       .populate('user', 'name email');
 
-    // Tạo map để tra cứu nhanh theo email
     const permissionMap = new Map(
       existingPermissions.map((perm) => [(perm.user as any).email, perm]),
     );
-
+    const existingInvitations = await this.documentInvitationModel.find({
+      document: documentID,
+    });
+    const invitationMap = new Map(
+      existingInvitations.map((inv) => [inv.email, inv]),
+    );
     for (const { user, role } of collaborator) {
       if (!user?.email || !role) {
         throw new BadRequestException(
           'Missing email or role in collaborator data',
         );
       }
-      const existing = permissionMap.get(user.email);
-      if (existing) {
-        if (role === 'Remove') {
-          await this.documentPermisionModel.deleteOne({ _id: existing._id });
-        } else {
-          const newRole =
-            role === 'Viewer'
-              ? CollaboratorRole.VIEWER
-              : CollaboratorRole.EDITOR;
-          if (existing.role !== newRole) {
-            existing.role = newRole;
-            await existing.save();
+      const email = user.email;
+      if (permissionMap.has(email)) {
+        const existing = permissionMap.get(email);
+        if (existing) {
+          if (role === 'Remove') {
+            await this.documentPermisionModel.deleteOne({ _id: existing._id });
+          } else {
+            const newRole =
+              role === 'Viewer'
+                ? CollaboratorRole.VIEWER
+                : CollaboratorRole.EDITOR;
+
+            if (existing.role !== newRole) {
+              existing.role = newRole;
+              await existing.save();
+            }
+          }
+        }
+      } else if (invitationMap.has(email)) {
+        const invitation = invitationMap.get(email);
+        if (invitation) {
+          if (role === 'Remove') {
+            console.log(invitation);
+            (invitation as any).status = 'rejected';
+            await invitation.save();
+          } else {
+            if (invitation.role !== role) {
+              invitation.role = role;
+              await invitation.save();
+            }
           }
         }
       } else {
@@ -358,7 +400,10 @@ export class DocumentService {
       },
     });
   }
-  async verifyInvitationToken(invitation_token: string): Promise<{
+  async verifyInvitationToken(
+    invitation_token: string,
+    emailChecked: string | null = null,
+  ): Promise<{
     status: boolean;
     message?: string;
     documentName?: string;
@@ -391,7 +436,11 @@ export class DocumentService {
           'You must register with the email in the invitation',
         );
       }
-
+      if (emailChecked && emailChecked !== email) {
+        throw new BadRequestException(
+          `You must use the email address ${email} to sign up with Google.`,
+        );
+      }
       if (invitation.document.toString() !== documentId) {
         return {
           status: false,
@@ -407,7 +456,7 @@ export class DocumentService {
       const user = await this.userService.findbyEmail(email);
       if (!user) {
         throw new BadRequestException(
-          'You must login/register with the email in the invitation',
+          `You must use the email address ${email} to sign up with Google.`,
         );
       }
 
@@ -432,7 +481,7 @@ export class DocumentService {
       if (error instanceof TokenExpiredError) {
         return {
           status: false,
-          message: "Invalid or expired token"
+          message: 'Invalid or expired invitation',
         };
       }
       throw new UnauthorizedException(error.message);

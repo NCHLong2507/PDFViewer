@@ -27,13 +27,13 @@ export default function TokenExpiredPage() {
         </div>
 
         <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          Invitation Expired
+          {t("auth.invitationExpired")}
         </h1>
 
         <p className="text-xl text-gray-600 mb-8">
-          This invitation link is no longer valid.
+          {t("auth.invalidInvitation")}
           <br />
-          Please contact the sender for a new invitation.
+          {t("auth.newInvitation")}
         </p>
 
         <button

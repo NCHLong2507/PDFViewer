@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Logo from "../../../assets/DSV.logo.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import GoogleLogin from "../GoogleLogin";
 import SignupForm from "./SignupForm";
@@ -10,7 +10,7 @@ export default function SignupContainer() {
   const [checkerror, setCheckError] = useState("");
   const [googleError, setGoogleError] = useState(false);
   const [googleErrorMessage, setGoogleErrorMesssage] = useState("");
-
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,7 +20,7 @@ export default function SignupContainer() {
       setCheckError("");
     }
   };
-
+  const invitation_token = searchParams.get("invitation_token");
   return (
     <div className="w-[536px] h-[100vh] absolute right-0 px-[48px] gap-[44px] flex flex-col justify-center items-start roudend-[8px]  bg-[#F5F5F5]">
       <div className=" w-full h-[58px] flex justify-center items-center relative  ">
@@ -36,7 +36,7 @@ export default function SignupContainer() {
         <GoogleLogin
           setGoogleError={setGoogleError}
           setGoogleErrorMesssage={setGoogleErrorMesssage}
-          invitation_token={null}
+          invitation_token={invitation_token}
         />
         <div className="w-full min-h-[483px] flex flex-col gap-[24px] ">
           <div className="w-full h-[20px] flex justify-center items-center gap-[10px]">

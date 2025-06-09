@@ -12,7 +12,7 @@ import { LoginDTO } from 'src/auth/DTO/LoginDTO';
 import { RegisterDTO } from 'src/auth/DTO/RegisterDTO';
 import { UserDTO } from 'src/user/DTO/UserDTO';
 import { UserService } from 'src/user/user.service';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as brypt from 'bcrypt';
 import { MailService } from 'src/mail/mail.service';
@@ -78,7 +78,6 @@ export class AuthService {
         }
       } catch (error) {
         if (error instanceof ForbiddenException) throw error;
-        throw new BadRequestException('Invalid or expired invitation token.');
       }
     }
     const existingUser = await this.userService.findbyEmail(email);
@@ -115,9 +114,13 @@ export class AuthService {
       throw new BadRequestException('User email not found');
     }
     const invitation_token = user.invitation_token;
+    const verify_token = await this.jwtService.signAsync(
+      {},
+      { secret: process.env.JWT_VERIFICATION_KEY, expiresIn: '24h' },
+    );
     const verificationLink = invitation_token
-      ? `http://localhost:3000/auth/verifyUser?user_id=${user?._id}&invitation_token=${invitation_token}`
-      : `http://localhost:3000/auth/verifyUser?user_id=${user?._id}`;
+      ? `http://localhost:3000/auth/verifyUser?user_id=${_id}&verify_token=${verify_token}&invitation_token=${invitation_token}`
+      : `http://localhost:3000/auth/verifyUser?user_id=${_id}&verify_token=${verify_token}`;
     const mailoptions = {
       subject: 'Verification email',
       template: 'signup-confirmation-email',
@@ -130,12 +133,24 @@ export class AuthService {
     this.mailService.sendEmail(mailoptions);
   }
 
-  async verifyUser(_id: string): Promise<UserDTO> {
+  async verifyUser(_id: string): Promise<boolean | UserDTO> {
     if (!_id) {
       throw new BadRequestException('User ID is required');
     }
-    const newUser = await this.userService.updateUser(_id, { isVerify: true });
-    const userDTO = plainToInstance(UserDTO, newUser, {
+
+    const user = await this.userService.findById(_id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.isVerify === true) {
+      return true;
+    }
+
+    const updatedUser = await this.userService.updateUser(_id, {
+      isVerify: true,
+    });
+    const userDTO = plainToInstance(UserDTO, updatedUser, {
       excludeExtraneousValues: true,
     });
     return userDTO;

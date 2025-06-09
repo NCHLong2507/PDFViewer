@@ -21,7 +21,7 @@ export default function UploadProgressBar({currentFileName, uploadProgress, setI
         </button>
       </div>
       <div className="flex h-[108px] items-center justify-center px-4 py-4 gap-4">
-        <img src={PDFIcon} className="w-6 h-6" alt="PDF Icon" />
+        <img src={PDFIcon} className="w-10 h-10" alt="PDF Icon" />
         <div className="flex flex-col gap-2">
           <span className="text-sm text-gray-800 truncate">
             {currentFileName}

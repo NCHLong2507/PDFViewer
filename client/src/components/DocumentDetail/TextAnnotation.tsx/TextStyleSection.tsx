@@ -24,7 +24,7 @@ export default function TextColorSection() {
   ];
   const textSizes = ["10pt", "12pt", "14pt", "16pt", "18pt", "24pt", "32pt"];
   const dispatch = useDispatch<AppDispatch>();
-  const textAnnotation = useSelector((state:RootState) => state.text.textAnnotation);
+  const textAnnotation = useSelector((state:RootState) => state.docDetail.text.textAnnotation);
   const { t } = useTranslation();
   return (
     <div className="w-full mb-4 flex flex-col gap-1">

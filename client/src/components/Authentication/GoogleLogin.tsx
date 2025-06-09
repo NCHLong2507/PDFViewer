@@ -50,8 +50,9 @@ export default function GoogleLogin({
             setGoogleError(true);
             setGoogleErrorMesssage(t("auth.loginGoogleError"));
           } else if (result && result.statusCode === 403) {
+            const email = result.message ? result.message.split(" ")[6] : "";
             setGoogleError(true);
-            setGoogleErrorMesssage(t("auth.errorEmailGoogleSignup"));
+            setGoogleErrorMesssage(t("auth.errorEmailGoogleSignup",{email}));
           } else {
             setGoogleError(true);
             setGoogleErrorMesssage(result.message as string);

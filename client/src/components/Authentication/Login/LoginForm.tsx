@@ -3,7 +3,7 @@ import useField from "../../../hooks/useField";
 import { FiEyeOff, FiEye } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { isValidEmail } from "../../../pages/Authentication/Authentication";
+import { isValidEmail } from "../../../pages/Authentication";
 import { useAuth } from "../../../context/AuthContext";
 import { setIsLoading } from "../../../store/documentDetailSlice/documentDetailSlice";
 import { useDispatch } from "react-redux";

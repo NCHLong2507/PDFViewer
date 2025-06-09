@@ -1,15 +1,16 @@
 import { createBrowserRouter } from "react-router-dom";
-import Authentication from "../pages/Authentication/Authentication";
+import Authentication from "../pages/Authentication";
 import LoginContainer from "../components/Authentication/Login/LoginContainer";
 import SignupContainer from "../components/Authentication/Signup/SignupContainer";
-import VerifyEmail from "../pages/Authentication/VerifyEmail";
-import SuccessVerifyEmail from "../pages/Authentication/SuccessVerifyPage";
+import VerifyEmail from "../pages/VerifyEmail";
+import SuccessVerifyEmail from "../pages/SuccessVerifyPage";
 import DocumentList from "../components/DocumentList/DocumentList";
 import DocumentDetailed from "../components/DocumentDetail/DocumentDetail";
 import PageNotFound from "../pages/PageNotFound";
-import NoPermissionPage from "../pages/Document/NoPermissionPage";
-import Document from "../pages/Document/Document";
+import NoPermissionPage from "../pages/NoPermissionPage";
+import Document from "../pages/Document";
 import TokenExpiredPage from "../pages/InvitationTokenExpired";
+import VerifyTokenExpired from "../pages/VerifyTokenExpired";
 const router = createBrowserRouter([
   {
     path: "/document",
@@ -53,7 +54,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/invalidToken",
-    element: <TokenExpiredPage/>
+    element: <TokenExpiredPage />,
+  },
+  {
+    path: "/invalidVerifyToken",
+    element: <VerifyTokenExpired/>
   },
   {
     path: "*",

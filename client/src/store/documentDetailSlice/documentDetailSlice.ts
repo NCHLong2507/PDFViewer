@@ -10,6 +10,7 @@ interface ViewerState {
   downloadSignal: boolean;
   isLoading: boolean;
   isChangeSaved: boolean;
+  isDownloadLoading: boolean
 }
 
 const initialState: ViewerState = {
@@ -21,7 +22,8 @@ const initialState: ViewerState = {
   showShareModal: false,
   downloadSignal: false,
   isLoading: false,
-  isChangeSaved: true
+  isChangeSaved: true,
+  isDownloadLoading: false
 };
 
 const documentSlice = createSlice({
@@ -66,7 +68,10 @@ const documentSlice = createSlice({
     },
     setIsChangeSaved: (state,action: PayloadAction<boolean>)=> {
       state.isChangeSaved = action.payload;
-    }
+    },
+    setIsDownloadLoading: (state,action: PayloadAction<boolean>)=> {
+      state.isDownloadLoading = action.payload;
+    },
   },
 });
 
@@ -83,7 +88,8 @@ export const {
   toggleShowShareModal,
   toggleDownloadSignal,
   setIsLoading,
-  setIsChangeSaved
+  setIsChangeSaved,
+  setIsDownloadLoading
 } = documentSlice.actions;
 
 export default documentSlice.reducer;

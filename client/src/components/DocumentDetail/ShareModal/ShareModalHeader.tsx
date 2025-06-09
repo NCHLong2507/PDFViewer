@@ -6,7 +6,7 @@ import {
   setEmailInput,
   setMatchedUser,
 } from "../../../store/documentDetailSlice/shareModalSlice";
-import { isValidEmail } from "../../../pages/Authentication/Authentication";
+import { isValidEmail } from "../../../pages/Authentication";
 import { useEffect, useMemo } from "react";
 import { debounce } from "lodash";
 import documentDetailService from "../../../services/documentDetailService";
@@ -23,7 +23,7 @@ export default function ShareModalHeader({
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const emailInput = useSelector(
-    (state: RootState) => state.shareModal.emailInput
+    (state: RootState) => state.docDetail.shareModal.emailInput
   );
 
   const debouncedFindUserByEmail = useMemo(

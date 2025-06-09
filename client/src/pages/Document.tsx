@@ -1,9 +1,9 @@
-import NavBar from "../../components/Navbar/index";
+import NavBar from "../components/Navbar/index";
 import { Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import PageNotFound from "../PageNotFound";
+import PageNotFound from "./PageNotFound";
 export default function Document() {
   const location = useLocation();
 

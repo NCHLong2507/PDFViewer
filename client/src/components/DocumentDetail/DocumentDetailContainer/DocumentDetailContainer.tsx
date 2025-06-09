@@ -15,6 +15,7 @@ import {
   setShowTextCustomTable,
   setShowShareModal,
   toggleDownloadSignal,
+  setIsDownloadLoading,
 } from "../../../store/documentDetailSlice/documentDetailSlice";
 import { setIsShapeModified } from "../../../store/documentDetailSlice/shapeAnnotationSlice";
 import { setIsTextModified } from "../../../store/documentDetailSlice/textAnnotationSlice";
@@ -43,23 +44,24 @@ export default function DocumentDetailedContainer({
   const dispatch = useDispatch<AppDispatch>();
   const instanceRef = useRef<any>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
-  const zoomLevel = useSelector((state: RootState) => state.editor.zoomLevel);
+  const zoomLevel = useSelector((state: RootState) => state.docDetail.editor.zoomLevel);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const shapeAnnotation = useSelector(
-    (state: RootState) => state.shape.shapeAnnotation
+    (state: RootState) => state.docDetail.shape.shapeAnnotation
   );
   const isUploadLoading = useSelector(
-    (state: RootState) => state.editor.isLoading
+    (state: RootState) => state.docDetail.editor.isLoading
   );
   const showShareModal = useSelector(
-    (state: RootState) => state.editor.showShareModal
+    (state: RootState) => state.docDetail.editor.showShareModal
   );
   const showSuccessPopup = useSelector(
-    (state: RootState) => state.editor.showSuccessPopup
+    (state: RootState) => state.docDetail.editor.showSuccessPopup
   );
   const downloadSignal = useSelector(
-    (state: RootState) => state.editor.downloadSignal
+    (state: RootState) => state.docDetail.editor.downloadSignal
   );
+
   const { t } = useTranslation();
   const shapeToToolMap: Record<string, string> = {
     rectangle: "AnnotationCreateRectangle",
@@ -213,8 +215,7 @@ export default function DocumentDetailedContainer({
               document._id,
               dispatch,
               document,
-              annotWaitingQueue,
-              refetchDocument
+              annotWaitingQueue
             );
           }
 
@@ -249,27 +250,39 @@ export default function DocumentDetailedContainer({
   useEffect(() => {
     if (downloadSignal) {
       const handleDownloadPDFWithXFDF = async () => {
-        const { documentViewer, annotationManager } = instanceRef.current.Core;
-        const xfdfString = await annotationManager.exportAnnotations({
-          links: false,
-          widgets: false,
-        });
-        const data = await documentViewer.getDocument().getFileData({
-          xfdfString,
-          downloadType: "pdf",
-        });
-        const blob = new Blob([new Uint8Array(data)], {
-          type: "application/pdf",
-        });
-        const link = window.document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = document.name;
-        link.click();
+        try {
+          dispatch(setIsDownloadLoading(true)); 
+          const { documentViewer, annotationManager } =
+            instanceRef.current.Core;
+          const xfdfString = await annotationManager.exportAnnotations({
+            links: false,
+            widgets: false,
+          });
+          const data = await documentViewer.getDocument().getFileData({
+            xfdfString,
+            downloadType: "pdf",
+          });
+          const blob = new Blob([new Uint8Array(data)], {
+            type: "application/pdf",
+          });
+          const link = window.document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.href = url;
+          link.download = document.name;
+          link.click();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Download error:", error);
+        } finally {
+          dispatch(setIsDownloadLoading(false)); 
+          dispatch(toggleDownloadSignal());
+        }
       };
+
       handleDownloadPDFWithXFDF();
-      dispatch(toggleDownloadSignal());
     }
   }, [downloadSignal]);
+
   const annotationsProps = {
     instanceRef,
     getToolNameFromShape,
@@ -278,7 +291,12 @@ export default function DocumentDetailedContainer({
   };
   return (
     <div className="w-full h-[648px] flex flex-col justify-center items-center rounded-xl bg-gray-100 border-[1px] border-[rgba(217,217,217,1)]">
-      {isUploadLoading && <LoadingAnimation className="w-10 h-10 border-4 border-yellow-400" position="absolute top-4"/>}
+      {isUploadLoading && (
+        <LoadingAnimation
+          className="w-10 h-10 border-4 border-yellow-400"
+          position="absolute top-4"
+        />
+      )}
       <div
         id="viewer-container"
         className="w-full h-full flex flex-col justify-center items-center overflow-auto scrollbar-hidden relative" // Thêm relative ở đây

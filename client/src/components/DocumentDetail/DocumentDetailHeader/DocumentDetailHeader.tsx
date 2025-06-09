@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import type { Document } from "../../../interface/document";
 import type { QueryObserverResult } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
-import type { AppDispatch } from "../../../store/store";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
 import {
   setShowShareModal,
   toggleDownloadSignal,
@@ -22,6 +22,9 @@ export default function DocumentDetailedHeader({
   const navigate = useNavigate();
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
+  const isDownloadLoading = useSelector(
+    (state: RootState) => state.docDetail.editor.isDownloadLoading
+  );
   const handleBack = () => {
     navigate("/document/documentlist", { state: { refetch: true } });
   };
@@ -37,8 +40,13 @@ export default function DocumentDetailedHeader({
         <button
           onClick={() => dispatch(toggleDownloadSignal())}
           className="flex items-center gap-3 px-4 py-2 border border-[rgba(118, 118, 118, 1)] rounded-md bg-gray-200 hover:bg-gray-300"
+          disabled={isDownloadLoading}
         >
-          <LuDownload className="w-4 h-4" />
+          {isDownloadLoading ? (
+            <div className="animate-spin h-4 w-4 rounded-full border-2 border-gray-500 border-t-transparent"></div>
+          ) : (
+            <LuDownload className="w-4 h-4" />
+          )}
           <span>{t("docDetail.download")}</span>
         </button>
 

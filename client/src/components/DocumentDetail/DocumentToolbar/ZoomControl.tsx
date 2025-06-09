@@ -9,7 +9,7 @@ interface ZoomControlProps {
 }
 export default function ZoomControl({ instanceRef }: ZoomControlProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const zoomLevel = useSelector((state: RootState) => state.editor.zoomLevel);
+  const zoomLevel = useSelector((state: RootState) => state.docDetail.editor.zoomLevel);
   const [inputValue, setInputValue] = useState<string>(
     Math.round(zoomLevel * 100).toString() + "%"
   );

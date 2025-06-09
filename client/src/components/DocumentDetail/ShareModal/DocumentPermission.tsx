@@ -20,9 +20,9 @@ export default function DocumentPermission({
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();
   const collaborator = useSelector(
-    (state: RootState) => state.shareModal.collaborator
+    (state: RootState) => state.docDetail.shareModal.collaborator
   );
-  const modified = useSelector((state: RootState) => state.shareModal.modified);
+  const modified = useSelector((state: RootState) => state.docDetail.shareModal.modified);
   useEffect(() => {
     dispatch(fetchDocumentPermission(document._id));
   }, []);

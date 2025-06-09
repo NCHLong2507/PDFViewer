@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { setShapeAnnotation } from "../../../store/documentDetailSlice/shapeAnnotationSlice";
 export default function ShapeSection() {
   const shapes = ["rectangle", "ellipse", "triangle", "line", "arrow"];
-  const shapeAnnotation = useSelector((state:RootState)=>state.shape.shapeAnnotation);
+  const shapeAnnotation = useSelector((state:RootState)=>state.docDetail.shape.shapeAnnotation);
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();
   return (

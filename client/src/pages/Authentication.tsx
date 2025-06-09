@@ -1,27 +1,23 @@
 import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Logomark from "../../components/Authentication/Logomark";
-import { useAuth } from "../../context/AuthContext";
+import Logomark from "../components/Authentication/Logomark";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import PageNotFound from "../PageNotFound";
 import { Toaster } from "react-hot-toast";
 import { useSelector } from "react-redux";
-import type { RootState } from "../../store/store";
+import type { RootState } from "../store/store";
 import { useLocation } from "react-router-dom";
 
-import LoadingAnimation from "../../components/Common/LoadingAnimation";
+import LoadingAnimation from "../components/Common/LoadingAnimation";
 export const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 export default function Authentication() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const isLoading = useSelector((state: RootState) => state.editor.isLoading);
+  const isLoading = useSelector((state: RootState) => state.docDetail.editor.isLoading);
   const location = useLocation();
-  if (location.pathname === "/document") {
-    return <PageNotFound />;
-  }
-  const { checkAuthorization } = useAuth();
   const navigate = useNavigate();
+  const { checkAuthorization } = useAuth();
   const searchParams = new URLSearchParams(location.search);
 
   const invitationToken = searchParams.get("invitation_token");
@@ -29,9 +25,9 @@ export default function Authentication() {
   useEffect(() => {
     const checkAuth = async () => {
       const authorized = await checkAuthorization(invitationToken);
+      console.log(authorized);
       if (authorized.directURL) {
-        console.log("ABC")
-        return navigate(authorized.directURL, { replace: true }); 
+        return navigate(authorized.directURL, { replace: true });
       }
       if (authorized.status) {
         navigate("/document/documentlist", { replace: true });

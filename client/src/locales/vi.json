@@ -29,7 +29,18 @@
     "inputReconfirmPassword": "Xác nhận lại mật khẩu",
     "loginAccountGoogleError": "Địa chỉ email này hiện đang được sử dụng với tài khoản Google. Vui lòng đăng nhập bằng Google.",
     "errorEmailSignup": "Bạn phải dùng địa chỉ email {{email}} để đăng ký",
-    "errorEmailGoogleSignup": "Bạn phải dùng địa chỉ email {{email}} để tiếp tục với Google"
+    "errorEmailGoogleSignup": "Bạn phải dùng địa chỉ email {{email}} để tiếp tục với Google",
+    "wellDone": "Tuyệt vời!!",
+    "verifyEmailSuccess": "Bạn đã xác minh email thành công",
+    "goToMyDocument": "Đi tới tài liệu của tôi",
+    "verifyEmail": "Xác minh địa chỉ email",
+    "sendverification": "Chúng tôi vừa gửi một email xác minh tới địa chỉ ",
+    "checkBox": "Vui lòng kiểm tra hộp thư của bạn",
+    "noReceiveEmail": "Không nhận được email? ",
+    "resendVerificationEmail": "Gửi lại liên kết xác minh",
+    "invitationExpired": "Thư mời hết hạn",
+    "invalidInvitation": "Liên kết lời mời này không còn hiệu lực nữa.",
+    "newInvitation": "Vui lòng liên hệ với người gửi để xin lời mời mới."
   },
   "docDetail": {
     "isLoading": "Đang tải tài liệu...",
@@ -89,7 +100,8 @@
     "signedAs": "Bạn đang đăng nhập với email",
     "backToDocButton": "Quay lại tài liệu của tôi",
     "pageNotFound": "Không tìm thấy trang",
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "pageremoved": "Trang bạn đang tìm kiếm không hợp lệ hoặc đã bị xóa"
   },
   "navbar": {
     "goodMorning": "Chào buổi sáng,",

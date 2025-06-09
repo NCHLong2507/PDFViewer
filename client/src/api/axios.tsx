@@ -16,11 +16,13 @@ api.interceptors.response.use(
       "/auth/refresh",
       "/auth/authorize",
     ];
-
+    const shouldSkip = skipRefreshRoutes.some((route) =>
+      originalRequest.url.startsWith(route)
+    );
     if (
       err.response?.status === 401 &&
       !originalRequest._retry &&
-      !skipRefreshRoutes.includes(originalRequest.url)
+      !shouldSkip
     ) {
       originalRequest._retry = true;
 
@@ -44,7 +46,7 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
-    } 
+    }
     return Promise.reject(err);
   }
 );

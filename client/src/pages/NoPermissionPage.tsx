@@ -1,5 +1,5 @@
-import EmptyNetwork from '../../assets/empty_network.png';
-import { useAuth } from '../../context/AuthContext';
+import EmptyNetwork from '../assets/empty_network.png';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 export default function NoPermissionPage() {

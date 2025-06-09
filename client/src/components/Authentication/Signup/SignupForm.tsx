@@ -4,7 +4,7 @@ import useField from "../../../hooks/useField";
 import { useAuth } from "../../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { isValidEmail } from "../../../pages/Authentication/Authentication";
+import { isValidEmail } from "../../../pages/Authentication";
 import { setIsLoading } from "../../../store/documentDetailSlice/documentDetailSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../../store/store";
@@ -88,6 +88,7 @@ export default function SignupForm({
       } else if (result.statusCode === 403) {
         console.log(result.message);
         const email = result.message ? result.message.split(" ")[6] : "";
+        setGoogleError(true);
         setGoogleErrorMesssage(t("auth.errorEmailSignup", { email }));
       } else {
         setGoogleError(true);
@@ -162,6 +163,9 @@ export default function SignupForm({
             {...passwordField.bind}
             onChange={(e) => {
               passwordField.bind.onChange(e);
+              if (passwordField.error ===t("auth.passnotsame")) {
+                confirmPasswordField.setError('');
+              }
               setGoogleError(false);
             }}
             className={`py-[12px] pr-[40px] pl-[16px] h-[40px] rounded-[8px] min-w-[240px] bg-white w-full
@@ -194,6 +198,9 @@ export default function SignupForm({
             {...confirmPasswordField.bind}
             onChange={(e) => {
               confirmPasswordField.bind.onChange(e);
+              if (confirmPasswordField.error ===t("auth.passnotsame")) {
+                passwordField.setError('');
+              }
               setGoogleError(false);
             }}
             className={`py-[12px] pr-[40px] pl-[16px] h-[40px] rounded-[8px] min-w-[240px] bg-white w-full

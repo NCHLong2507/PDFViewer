@@ -12,7 +12,6 @@ import {
 import { debounce } from "lodash";
 import { type AppDispatch } from "../../../store/store";
 import type { Document } from "../../../interface/document";
-import type { QueryObserverResult } from "@tanstack/react-query";
 import {
   setFrameStyle,
   setIsTextModified,
@@ -33,8 +32,7 @@ export default function registerAnnotationEvents(
   id: string,
   dispatch: AppDispatch,
   document: Document,
-  annotWaitingQueue: { [key: string]: string },
-  refetchDocument: () => Promise<QueryObserverResult<Document>>
+  annotWaitingQueue: { [key: string]: string }
 ) {
   annotationManager.addEventListener("annotationSelected", (annotations) => {
     const annot = annotations[0];
@@ -48,6 +46,8 @@ export default function registerAnnotationEvents(
         toolbar.style.top = `${scrollViewHTMLElement.offsetTop + 20}px`;
       }
       dispatch(setShowShapeCustomTable(true));
+      dispatch(setShowTextCustomTable(false));
+      instanceRef.current.UI.setToolMode("AnnotationEdit");
       let FillColor = annot.FillColor;
       const StrokeColor = annot.StrokeColor;
       if (
@@ -96,6 +96,7 @@ export default function registerAnnotationEvents(
         toolbar.style.top = `${scrollViewHTMLElement.offsetTop + 20}px`;
       }
       dispatch(setShowTextCustomTable(true));
+      dispatch(setShowShapeCustomTable(false));
       const FillColor = annot.FillColor;
       const TextColor = annot.TextColor;
       const StrokeColor = annot.StrokeColor;
@@ -159,7 +160,11 @@ export default function registerAnnotationEvents(
       links: false,
       widgets: false,
     });
-    await documentDetailService.addAnnotation(documentID,xfdfString,annotation.Id);
+    await documentDetailService.addAnnotation(
+      documentID,
+      xfdfString,
+      annotation.Id
+    );
   };
   const debouncedExportAndSendXFDF = debounce(
     async (
@@ -168,7 +173,10 @@ export default function registerAnnotationEvents(
     ) => {
       try {
         if (!documentID) return;
-        await documentDetailService.updateAnnotation(documentID,annotWaitingQueue);
+        await documentDetailService.updateAnnotation(
+          documentID,
+          annotWaitingQueue
+        );
         dispatch(setIsChangeSaved(true));
         Object.keys(annotWaitingQueue).forEach((key) => {
           delete annotWaitingQueue[key];
@@ -177,9 +185,11 @@ export default function registerAnnotationEvents(
         console.error("Export or send XFDF failed", err);
       }
     },
-    1000
+    1500
   );
-
+  annotationManager.addEventListener("documentUnloaded", () =>
+    debouncedExportAndSendXFDF(annotWaitingQueue, id)
+  );
   annotationManager.addEventListener(
     "annotationChanged",
     async (annotations, action) => {
@@ -188,6 +198,7 @@ export default function registerAnnotationEvents(
           if (annot.goa) {
             continue;
           }
+          console.log(annot);
           dispatch(setIsChangeSaved(false));
           if (action === "delete") {
             annotWaitingQueue[annot.Id] = "";
@@ -223,6 +234,7 @@ export default function registerAnnotationEvents(
           }
         }
         if (notImported.length > 0) {
+          console.log(notImported);
           dispatch(setIsChangeSaved(false));
           const exportPromises = notImported.map(
             async (annot: Core.Annotations.Annotation) => {

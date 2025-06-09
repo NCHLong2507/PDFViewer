@@ -29,7 +29,18 @@
     "inputReconfirmPassword": "Re-confirm password",
     "loginAccountGoogleError": "This email address is currently being used with Google account. Please sign in with Google.",
     "errorEmailSignup": "You must use the email address {{email}} to sign up",
-    "errorEmailGoogleSignup": "You must use the email address {{email}} to sign up with Google"
+    "errorEmailGoogleSignup": "You must use the email address {{email}} to sign up with Google",
+    "wellDone": "Well Done !!",
+    "verifyEmailSuccess": "You have verifies your email successfully",
+    "goToMyDocument": "Go to my Documents",
+    "verifyEmail":"Verify your email address",
+    "sendverification": "We've just send a verification email to ",
+    "checkBox": "Please check your inbox",
+    "noReceiveEmail": "Didn’t receive an email? ",
+    "resendVerificationEmail": "Resend Verification Link",
+    "invitationExpired": "Expired or Invalid Invitation",
+    "invalidInvitation": "This invitation is no longer valid or has been removed",
+    "newInvitation": "Please contact the sender for a new invitation."
   },
   "docDetail": {
     "isLoading": "Document loading...",
@@ -89,7 +100,8 @@
     "signedAs": "You are signed in as",
     "backToDocButton": "Back to my Document",
     "pageNotFound": "Page Not Found",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "pageremoved": "Your page you are looking for is invalid or has been removed"
   },
   "navbar": {
     "goodMorning": "Good morning,",

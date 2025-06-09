@@ -32,19 +32,19 @@ export default function AnnotationButton({
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const showShapeCustomTable = useSelector(
-    (state: RootState) => state.editor.showShapeCustomTable
+    (state: RootState) => state.docDetail.editor.showShapeCustomTable
   );
   const showTextCustomTable = useSelector(
-    (state: RootState) => state.editor.showTextCustomTable
+    (state: RootState) => state.docDetail.editor.showTextCustomTable
   );
   const isTextModified = useSelector(
-    (state: RootState) => state.text.isTextModified
+    (state: RootState) => state.docDetail.text.isTextModified
   );
   const isShapeModified = useSelector(
-    (state: RootState) => state.shape.isShapeModified
+    (state: RootState) => state.docDetail.shape.isShapeModified
   );
   const shapeAnnotation = useSelector(
-    (state: RootState) => state.shape.shapeAnnotation
+    (state: RootState) => state.docDetail.shape.shapeAnnotation
   );
   const handleTextAnnotation = () => {
     if (showShapeCustomTable) return;

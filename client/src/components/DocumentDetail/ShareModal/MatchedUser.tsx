@@ -10,13 +10,13 @@ import {
 
 export default function MatchedUser({ document }: { document: Document }) {
   const matchedUser = useSelector(
-    (state: RootState) => state.shareModal.matchedUser
+    (state: RootState) => state.docDetail.shareModal.matchedUser
   );
   const userAddedList = useSelector(
-    (state: RootState) => state.shareModal.userAddedList
+    (state: RootState) => state.docDetail.shareModal.userAddedList
   );
   const collaborator = useSelector(
-    (state: RootState) => state.shareModal.collaborator
+    (state: RootState) => state.docDetail.shareModal.collaborator
   );
   const dispatch = useDispatch<AppDispatch>();
   const AddtoUserList = () => {
