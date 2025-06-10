@@ -1,4 +1,4 @@
-import NavBar from "../components/Navbar/Navbar";
+import NavBar from "../components/Header/Header";
 import EmailBox from "../assets/email-box.png";
 import { useSearchParams } from "react-router-dom";
 import api from "../api/axios";

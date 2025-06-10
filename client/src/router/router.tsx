@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Authentication from "../pages/Authentication";
 import LoginContainer from "../components/Authentication/Login/LoginContainer";
 import SignupContainer from "../components/Authentication/Signup/SignupContainer";
@@ -16,6 +16,10 @@ const router = createBrowserRouter([
     path: "/document",
     element: <Document />,
     children: [
+      {
+        index: true,
+        element: <Navigate to="documentlist" replace />,
+      },
       {
         path: "documentlist",
         element: <DocumentList />,
@@ -58,7 +62,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/invalidVerifyToken",
-    element: <VerifyTokenExpired/>
+    element: <VerifyTokenExpired />,
   },
   {
     path: "*",

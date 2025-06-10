@@ -1,5 +1,5 @@
 import Logo from "../../assets/DSV.logo.png";
-import NavBarTool from "./NavBarTool";
+import NavBarTool from "./HeaderTools";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function NavBar() {

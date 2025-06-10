@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import NavBar from "../components/Navbar/Navbar";
+import NavBar from "../components/Header/Header";
 import NotFoundImage from "../assets/NotFound.jpg";
 import { useTranslation } from "react-i18next";
 const NotFound: React.FC = () => {
