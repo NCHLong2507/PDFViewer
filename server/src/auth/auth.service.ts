@@ -137,15 +137,16 @@ export class AuthService {
     if (!_id) {
       throw new BadRequestException('User ID is required');
     }
-
-    const user = await this.userService.findById(_id);
+    const user = await this.userService.findById(_id,false);
     if (!user) {
-      throw new NotFoundException('User not found');
+      const user = await this.userService.findById(_id);
+      if (user && user.isVerify === true) {
+        return true;
+      }
+      else throw new NotFoundException('User not found');
     }
 
-    if (user.isVerify === true) {
-      return true;
-    }
+    
 
     const updatedUser = await this.userService.updateUser(_id, {
       isVerify: true,

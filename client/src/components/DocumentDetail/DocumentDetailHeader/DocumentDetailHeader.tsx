@@ -32,7 +32,7 @@ export default function DocumentDetailedHeader({
     <div className="flex justify-between w-full h-[52px] pt-2 pb-2">
       <div className="min-w-[524px] flex items-center justify-start h-full gap-3">
         <FaArrowLeft onClick={handleBack} className="w-6 h-6 pr-2" />
-        <strong className="text-center justify-center text-2xl">
+        <strong className="text-center justify-center text-2xl truncate">
           {document ? document.name : ""}
         </strong>
       </div>

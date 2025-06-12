@@ -109,7 +109,8 @@
     "backToDocButton": "Back to my Document",
     "pageNotFound": "Page Not Found",
     "loading": "Loading...",
-    "pageremoved": "Your page you are looking for is invalid or has been removed"
+    "pageremoved": "Your page you are looking for is invalid or has been removed",
+    "you": "You"
   },
   "navbar": {
     "goodMorning": "Good morning,",

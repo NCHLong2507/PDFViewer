@@ -53,7 +53,7 @@ export default function DocumentContainer({
   }, [setId]);
 
   return (
-    <section className="w-full h-[648px] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)] ">
+    <section className="w-full h-[75vh] flex justify-center items-center rounded-[12px] border-[1px] border-[rgba(217,217,217,1)] ">
       {isLoading ? (
         <p className="text-gray-500">{t("docList.loading")}</p>
       ) : count === 0 ? (
@@ -74,7 +74,7 @@ export default function DocumentContainer({
           {isLazyLoading && (
             <LoadingAnimation
               className="w-6 h-6 border-1 border-blue-500"
-              position="fixed bottom-10"
+              position="fixed bottom-14"
             />
           )}
         </div>

@@ -65,7 +65,7 @@ export default function ShareModalHeader({
 
   return (
     <>
-      <h2 className="leading-[1.2] font-[600] tracking-tighter text-[rgba(22, 28, 33, 1)] text-[26px] mb-4">
+      <h2 className="leading-[1.2] font-[600] tracking-tighter text-[rgba(22, 28, 33, 1)] text-[26px] mb-4 truncate">
         {t("docDetail.share")} “<span>{document.name}</span>”
       </h2>
 

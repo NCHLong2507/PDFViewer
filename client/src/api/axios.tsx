@@ -29,9 +29,7 @@ api.interceptors.response.use(
       if (isRefreshing) {
         return Promise.reject(err);
       }
-
       isRefreshing = true;
-
       try {
         await api.get("/auth/refresh");
         console.log(originalRequest);

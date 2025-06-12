@@ -40,6 +40,7 @@ export default function LoginForm({ setGoogleError }: LoginFormProps) {
         const result = await login(emailField.value, passwordField.value);
         if (result && result.success) {
           setUserInfor(result.user);
+          console.log("ABC",localStorage.getItem("redirectAfterLogin"))
           const redirectPath =
             localStorage.getItem("redirectAfterLogin") ||
             "/document/documentlist";

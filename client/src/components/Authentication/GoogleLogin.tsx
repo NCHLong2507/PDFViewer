@@ -31,11 +31,13 @@ export default function GoogleLogin({
           tokenResponse.access_token,
           invitation_token
         );
-
+        
         if (result && result.success) {
           setUserInfor(result.user);
           if (result.directURL) {
+            console.log(result.directURL);
             const redirectPath = result.directURL;
+            console.log(localStorage.getItem("redirectAfterLogin"));
             localStorage.removeItem("redirectAfterLogin");
             navigate(redirectPath, { replace: true });
           } else {

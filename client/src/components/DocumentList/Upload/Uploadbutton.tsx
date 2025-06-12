@@ -41,7 +41,7 @@ export default function UploadButton({
     setTimeout(() => {
       setIsUploadModal(false);
       dispatch(setShowSuccess(true));
-      if (count < 10) {
+      if (count <= 10) {
         if (!sortOrder) {
           dispatch(addDocumentToFront(document));
         } else {

@@ -69,13 +69,13 @@ export default function DocumentTalbe({
         <tr>
           <th
             scope="col"
-            className="w-[946px] h-[60px] px-8 py-2 text-left text-base font-normal tracking-wider"
+            className="w-[55%] h-[60px] px-8 py-2 text-left text-base font-normal tracking-wider"
           >
             {t("docList.fileName")}
           </th>
           <th
             scope="col"
-            className="w-[460px] h-[48px] px-8 py-2 text-left text-base font-normal tracking-wider"
+            className="w-[30%px] h-[48px] px-8 py-2 text-left text-base font-normal tracking-wider"
           >
             {t("docList.owner")}
           </th>
@@ -84,14 +84,14 @@ export default function DocumentTalbe({
             className="px-8 h-[60px] py-2 text-left text-base font-normal relative tracking-wider flex items-center"
           >
             {t("docList.lastUpdated")}
-            <div className="flex flex-col justify-center items-center ml-1">
+            <div className="flex flex-col justify-center items-center ml-1 relative">
               <IoMdArrowDropup
                 onClick={handleAscSort}
-                className="absolute right-[55px] top-[8px] w-[28px] h-[28px] hover:scale-150"
+                className="absolute right-[-25px] bottom-[2px] w-[28px] h-[28px] hover:scale-150"
               />
               <IoMdArrowDropdown
                 onClick={handleDescSort}
-                className="absolute right-[55px] bottom-[8px] w-[28px] h-[28px] hover:scale-150"
+                className="absolute right-[-25px] top-[2px] w-[28px] h-[28px] hover:scale-150"
               />
             </div>
           </th>
@@ -118,7 +118,7 @@ export default function DocumentTalbe({
               )}
               <p className="font-medium">
                 {userInfor && userInfor.email === doc.owner.email
-                  ? `${doc.owner.name} (You)`
+                  ? `${doc.owner.name} (${t("docList.you")})`
                   : doc.owner.name}
               </p>
             </td>
@@ -128,7 +128,6 @@ export default function DocumentTalbe({
             </td>
           </tr>
         ))}
-        
       </tbody>
     </table>
   );

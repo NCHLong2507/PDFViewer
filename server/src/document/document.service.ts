@@ -466,7 +466,7 @@ export class DocumentService {
       await this.documentPermisionModel.create({
         document: document._id,
         user: user._id,
-        role,
+        role:invitation.role,
       });
       return {
         status: true,

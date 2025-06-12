@@ -29,7 +29,7 @@ export class UserService {
     if (isVerify === true) {
       query.isVerify = true;
     }
-    const user = await this.userModel.findOne(query);
+    const user = await this.userModel.findOne(query); 
     return user;
   }
   async findById(

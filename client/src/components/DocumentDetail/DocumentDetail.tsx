@@ -28,6 +28,7 @@ export default function DocumentDetailed() {
     queryFn: fetchDocument,
     enabled: !!id,
     initialData: doc,
+    refetchOnWindowFocus:false,
   });
 
   const {
@@ -40,6 +41,7 @@ export default function DocumentDetailed() {
     queryKey: ["roleInfor", id],
     queryFn: fetchActionPermssion,
     enabled: !!id,
+    refetchOnWindowFocus: false
   });
 
   useEffect(() => {

@@ -229,10 +229,8 @@ export default function DocumentDetailedContainer({
     }, 100);
     return () => {
       clearTimeout(timeout);
-      instanceRef.current = null;
-      viewerRef.current = null;
     };
-  }, [document.fileUrl]);
+  }, []);
   function DeleteAnnotation() {
     if (instanceRef.current) {
       const { annotationManager } = instanceRef.current.Core;

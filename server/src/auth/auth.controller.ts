@@ -55,7 +55,6 @@ export class AuthController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@NestRequest() req, @Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
